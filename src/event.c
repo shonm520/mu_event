@@ -10,22 +10,24 @@
 
 void event_handler(event* ev)
 {
-    if (ev->actives & EPOLLRDHUP)  {
+    if (ev->active_event & EPOLLRDHUP)  {
 
     }
-    if (ev->actives & (EPOLLIN | EPOLLPRI))  {
+    if (ev->active_event & (EPOLLIN | EPOLLPRI))  {
         if (ev->event_read_handler)  {
             ev->event_read_handler(ev->fd, ev, ev->r_arg);
         }
+        printf("read event\n");
     }
-    if (ev->actives & EPOLLOUT)  {
+    if (ev->active_event & EPOLLOUT)  {
         if (ev->event_write_handler)  {
             ev->event_write_handler(ev->fd, ev, ev->w_arg);
         }
+        printf("write event\n");
     }
 }
 
-event* event_create(int fd, short events, event_callback_pt read_cb,
+event* event_create(int fd, short event_flag, event_callback_pt read_cb,
                     void* r_arg, event_callback_pt write_cb, void* w_arg)
 {
     event* ev = (event*)malloc(sizeof(event));
@@ -35,8 +37,8 @@ event* event_create(int fd, short events, event_callback_pt read_cb,
     }
 
     ev->fd = fd;
-    ev->events = events;
-    ev->actives = 0;
+    ev->event_flag = event_flag;
+    ev->active_event = 0;
     ev->event_read_handler = read_cb;
     ev->r_arg = r_arg;
 
@@ -59,13 +61,6 @@ void event_add_io(int epoll_fd, event* ev)
     ev->epoll_fd = epoll_fd;
     ev->is_listening = 1;
 }
-
-// void event_add_accept(server_manager* manager, event* ev)
-// {
-//     epoller_add(manager->epoll_fd, ev);
-//     ev->epoll_fd = manager->epoll_fd;
-//     ev->is_listening = 1;
-// }
 
 
 void event_stop(event *ev)

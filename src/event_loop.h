@@ -2,7 +2,6 @@
 
 struct event_loop_t  {
     int epoll_fd;
-
 };
 
 typedef struct event_loop_t event_loop;

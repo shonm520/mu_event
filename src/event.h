@@ -9,8 +9,8 @@ typedef void (*event_callback_pt)(int fd, event* ev, void* arg);
 
 struct event_t {
     int fd;
-    int events;
-    int actives;
+    int event_flag;
+    int active_event;
     struct timeval time;
 
     event_callback_pt event_read_handler;
@@ -24,7 +24,7 @@ struct event_t {
 };
 
 
-event* event_create(int fd, short events, event_callback_pt read_cb,
+event* event_create(int fd, short event_flag, event_callback_pt read_cb,
                     void* r_arg, event_callback_pt write_cb, void* w_arg);
 
 int event_start(event* ev);

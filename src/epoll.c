@@ -13,8 +13,7 @@
 
 int epoller_create()
 {
-    int epoll_fd ;
-    epoll_fd = epoll_create(1024);  //大于0就好
+    int epoll_fd = epoll_create(1024);  //大于0就好
     if (epoll_fd == -1)  {
          debug_ret("file : %s, line : %d", __FILE__, __LINE__);
         return -1;
@@ -30,7 +29,7 @@ void epoll_free(int fd)
 void epoller_add(int epoll_fd, event* e)
 {
     struct epoll_event ev;
-    ev.events = e->events;
+    ev.events = e->event_flag;
     ev.data.ptr = e;
 
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, e->fd, &ev) == -1)  {
@@ -41,7 +40,7 @@ void epoller_add(int epoll_fd, event* e)
 void epoller_del(int epoll_fd, event* e)
 {
     struct epoll_event ev;
-    ev.events = e->events;
+    ev.events = e->event_flag;
 
     if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, e->fd, &ev) == -1)  {
         debug_sys("file : %s, line : %d", __FILE__, __LINE__);
@@ -51,7 +50,7 @@ void epoller_del(int epoll_fd, event* e)
 void epoller_modify(int epoll_fd, event* e)
 {
     struct epoll_event ev;
-    ev.events = e->events;
+    ev.events = e->event_flag;
     ev.data.ptr = e;
 
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, e->fd, &ev) == -1)  {
@@ -73,11 +72,15 @@ struct timeval epoller_dispatch(int epoll_fd, int timeout)
         }
     }
 
+    printf("!!!!!nfds is %d\n", nfds);
+    sleep(0.21);
+
     int i;
     event* ev;
     for (i = 0; i < nfds; i++)  {
         ev = (event*)events[i].data.ptr;
         ev->time = now;
+        ev->active_event = events[i].events;
         event_handler(ev);
     }
     return now;

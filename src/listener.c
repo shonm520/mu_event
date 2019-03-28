@@ -59,10 +59,10 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	}
 
 	/* 打印客户端地址信息 */
-	//char buff[50];
-	//debug_msg("connection from %s, port %d",
-	//		inet_ntop(AF_INET, &client_addr.addr.sin_addr, buff, sizeof(buff)),
-	//		ntohs(client_addr.addr.sin_port));
+	char buff[50];
+	printf("connection from %s, port %d\n",
+			inet_ntop(AF_INET, &client_addr.addr.sin_addr, buff, sizeof(buff)),
+			ntohs(client_addr.addr.sin_port));
 
 	fcntl(connfd, F_SETFL, fcntl(connfd, F_GETFL) | O_NONBLOCK);
 
@@ -119,7 +119,7 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
         }
 
         ls_event = event_create(listen_fd, EPOLLIN | EPOLLPRI,
-                                    event_accept_callback, ls, NULL, NULL);
+                                    event_accept_callback, ls, NULL, NULL);       //后面参数是读写回调
         if (ls_event == NULL)  {
             break;
         }

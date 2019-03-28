@@ -3,9 +3,10 @@
 #include "event_loop.h"
 
 #include "epoll.h"
+#include <stdio.h>
 
-#define mu_malloc malloc;
-#define mu_free free;
+#define mu_malloc malloc
+#define mu_free free
 
 event_loop* event_loop_create()
 {

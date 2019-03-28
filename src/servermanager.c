@@ -1,11 +1,10 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+#include <stdlib.h>
 #include "logger.h"
 #include "servermanager.h"
 #include "event_loop.h"
-
-#include <stdlib.h>
 #include "epoll.h"
 
 
@@ -14,16 +13,10 @@
 event_loop *g_loops[MAX_LOOP];
 
 
-int main()
-{
-    return 0;
-}
-
 
 void* spawn_thread(void *arg)
 {
-	int i = (int)(*(int*)arg);
-	
+	int i = (long)arg;
 	g_loops[i] = event_loop_create();
 	event_loop_run(g_loops[i]);
 }
@@ -54,15 +47,14 @@ server_manager* server_manager_create()
 	}
 	
 	return manager;
-
 }
 
 
 
 void server_manager_run(server_manager* manager)
 {
-    int timeout = -1;
+    int timeout = -1;    //阻塞等待
     while(1)  {
-        
+        epoller_dispatch(manager->epoll_fd, timeout);
     }
 }
