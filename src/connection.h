@@ -18,7 +18,7 @@ struct connection_t  {
 
     connection_callback_pt readable_callback;
 
-    buffer_pool*    buf_pool_read;
+    //buffer_pool*    buf_pool_read;
     socket_buffer*  buf_socket_read;
 
 };

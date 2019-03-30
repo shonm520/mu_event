@@ -36,7 +36,7 @@ static void event_readable_callback(int fd, event* ev, void* arg)
             debug_sys("file: %s, line: %d", __FILE__, __LINE__);
         }
 
-        push_buffer(conn->buf_pool_read, conn->buf_socket_read, buf, real_n);
+        push_buffer(conn->buf_socket_read, buf, real_n);
         size -= real_n;
         printf("recv %s\n", buf);
         mu_free(buf);
@@ -70,11 +70,7 @@ connection* connection_create(event_loop* loop, int connfd, connection_callback_
 
     conn->conn_event = ev;
     event_add_io(loop->epoll_fd, ev);
-
-    conn->buf_pool_read   = (buffer_pool*)mu_malloc(sizeof(buffer_pool));
-    conn->buf_socket_read = (socket_buffer*)mu_malloc(sizeof(socket_buffer));
-    memset(conn->buf_pool_read, 0, sizeof(conn->buf_pool_read));
-    memset(conn->buf_socket_read, 0, sizeof(conn->buf_socket_read));
+    conn->buf_socket_read = socket_buffer_new();
 
     return conn;    
 }
@@ -82,8 +78,7 @@ connection* connection_create(event_loop* loop, int connfd, connection_callback_
 void connection_free(connection* conn)
 {
     event_free(conn->conn_event);
-    mu_free(conn->buf_pool_read);
-    mu_free(conn->buf_socket_read);
+    socket_buffer_free(conn->buf_socket_read);
     mu_free(conn);
 }
 
