@@ -59,7 +59,7 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 		}
 	}
 
-	/* 打印客户端地址信息 */
+	
 	char buff[50];
 	printf("connection from %s, port %d\n",
 			inet_ntop(AF_INET, &client_addr.addr.sin_addr, buff, sizeof(buff)),
@@ -67,25 +67,23 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 
 	fcntl(connfd, F_SETFL, fcntl(connfd, F_GETFL) | O_NONBLOCK);
 
-	/* epoll是线程安全的 */
     static int i = 0;
 	if (i == 4)
 		i = 0;
 	
-	connection *conn = connection_create(g_loops[i], connfd, ls->readable_callback);
+	connection *conn = connection_create(g_loops[i], connfd, ls->msg_callback);      //后面的参数是指有消息时的用户回调
 	if (conn == NULL)  {
 		debug_quit("file: %s, line: %d", __FILE__, __LINE__);
 	}
 	i++;
 	
-	/* 用户回调函数 */
 	if (ls->new_connection_callback)
 		ls->new_connection_callback(conn);
 }
 
 
 listener* listener_create(server_manager* manager, inet_address ls_addr,
-                         connection_callback_pt read_cb, connection_callback_pt new_con_cb)
+                         message_callback_pt msg_cb, connection_callback_pt new_con_cb)
 {
     listener* ls = (listener*)malloc(sizeof(listener));
     if (ls == NULL)  {
@@ -94,15 +92,14 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
     }
 
     ls->listen_addr = ls_addr;
-    ls->readable_callback = read_cb;
+    ls->msg_callback = msg_cb;
     ls->new_connection_callback = new_con_cb;
 
     int bOk = -1;
     event* ls_event = NULL;
     int listen_fd;
     do {
-        /* 创建非阻塞套接字 */
-        listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
+        listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);     //创建非阻塞套接字 
         if (listen_fd < 0)  {
             break;
         }

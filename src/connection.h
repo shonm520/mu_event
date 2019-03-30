@@ -3,7 +3,7 @@
 
 typedef struct connection_t connection;
 
-typedef void (*connection_callback_pt) (connection* conn);
+typedef void (*message_callback_pt) (connection* conn);
 
 typedef struct event_t event;
 
@@ -16,7 +16,7 @@ struct connection_t  {
     int fd;
     event* conn_event;    //为了在清理阶段一起销毁,处理这个作用，其实完全没有必要包含在这里
 
-    connection_callback_pt readable_callback;
+    message_callback_pt message_callback;
 
     //buffer_pool*    buf_pool_read;
     socket_buffer*  buf_socket_read;
@@ -24,7 +24,7 @@ struct connection_t  {
 };
 
 
-connection* connection_create(event_loop* loop, int fd, connection_callback_pt read_cb);
+connection* connection_create(event_loop* loop, int fd, message_callback_pt msg_cb);
 void connection_free(connection* conn);
 void connection_send(connection *conn, char *buf, size_t len);
 

@@ -42,6 +42,8 @@ static void event_readable_callback(int fd, event* ev, void* arg)
         mu_free(buf);
     } 
     while(size > 0);
+
+    conn->message_callback(conn);
 }
 
 static void event_writable_callback(int fd, event* ev, void* arg)
@@ -49,7 +51,7 @@ static void event_writable_callback(int fd, event* ev, void* arg)
     connection* conn = (connection*)arg;
 }
 
-connection* connection_create(event_loop* loop, int connfd, connection_callback_pt read_cb)
+connection* connection_create(event_loop* loop, int connfd, message_callback_pt msg_cb)
 {
     connection* conn = (connection* )mu_malloc(sizeof(connection));
     if (conn == NULL)  {
@@ -58,7 +60,7 @@ connection* connection_create(event_loop* loop, int connfd, connection_callback_
     }
 
     conn->fd = connfd;
-    conn->readable_callback = read_cb;
+    conn->message_callback = msg_cb;
 
     event* ev = (event*)event_create(connfd,  EPOLLIN | EPOLLPRI, event_readable_callback, 
                             conn, event_writable_callback, conn);

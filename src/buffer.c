@@ -21,6 +21,7 @@ void socket_buffer_free(socket_buffer* sb)
     buffer_node* head = sb->pool->head;
     for(; head != NULL; head = head->next)  {
         mu_free(head->msg);
+        head->msg = NULL;
     }
 }
 
