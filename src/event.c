@@ -60,17 +60,45 @@ void event_add_io(int epoll_fd, event* ev)
 {
     epoller_add(epoll_fd, ev);
     ev->epoll_fd = epoll_fd;
-    ev->is_listening = 1;
+    ev->is_working = 1;
+}
+
+void event_add_flag(event* ev, int add_flag, int plus)
+{
+    int flag = ev->event_flag |= add_flag;
+    if (plus == 0)  {
+        flag = ev->event_flag &= ~add_flag;
+    }
+    event_modify_flag(ev, flag);
+}
+
+void event_modify_flag(event* ev, int new_flag)
+{
+    if (ev->is_working == 0)  {
+        debug_msg("epoll_fd cannot modify, because it's not working now! %s, line: %d", __FILE__, __LINE__);
+        return;
+    }
+    ev->event_flag = new_flag;
+    epoller_modify(ev->epoll_fd, ev);
+}
+
+void event_enable_writing(event* ev)
+{
+    event_add_flag(ev, EPOLLOUT, 1);
+}
+
+void event_disable_writing(event* ev)
+{
+    event_add_flag(ev, EPOLLOUT, 0);
 }
 
 
 void event_stop(event *ev)
 {
-	/* 判断事件ev是否在epoll中,防止重复删除同一事件 */
-	if (ev->is_listening == 0)
+	if (ev->is_working == 0)                   //判断事件ev是否在epoll中,防止重复删除同一事件
 		return;
 
     epoller_del(ev->epoll_fd, ev);
 
-	ev->is_listening = 0;
+	ev->is_working = 0;
 }

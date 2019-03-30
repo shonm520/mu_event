@@ -18,8 +18,8 @@ struct connection_t  {
 
     message_callback_pt message_callback;
 
-    //buffer_pool*    buf_pool_read;
     socket_buffer*  buf_socket_read;
+    socket_buffer*  buf_socket_write;
 
 };
 

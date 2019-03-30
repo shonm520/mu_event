@@ -19,7 +19,7 @@ struct event_t {
     event_callback_pt event_write_handler;
     void* w_arg;
 
-    int is_listening;
+    int is_working;
     int epoll_fd;
 };
 
@@ -32,5 +32,7 @@ void event_stop(event* ev);
 void event_free(event* ev);
 
 void event_add_io(int epoll_fd, event* ev);
+void event_enable_writing(event* ev);
+void event_disable_writing(event* ev);
 
 void event_handler(event* ev);

@@ -10,6 +10,8 @@
 socket_buffer* socket_buffer_new()
 {
     socket_buffer* sb = (socket_buffer*)mu_malloc(sizeof(socket_buffer));
+    sb->size = 0;
+    sb->offset = 0;
     sb->pool = (buffer_pool*)mu_malloc(sizeof(buffer_pool));
     sb->pool->head = NULL;
     sb->pool->len = 0;
@@ -20,8 +22,10 @@ void socket_buffer_free(socket_buffer* sb)
 {
     buffer_node* head = sb->pool->head;
     for(; head != NULL; head = head->next)  {
-        mu_free(head->msg);
-        head->msg = NULL;
+        if (head->msg)  {
+            mu_free(head->msg);
+            head->msg = NULL;
+        }
     }
 }
 
@@ -154,7 +158,7 @@ char* readall(socket_buffer* sb, int* retNum)      //读取缓冲区所有的字
     if (total_size <= 0)  {
         return NULL;
     }
-    char* msg = (char*)mu_malloc(total_size); 
+    char* msg = (char*)mu_malloc(total_size + 1); 
     int offset = 0;
     while(sb->head)  {
         buffer_node* cur = sb->head;
@@ -166,5 +170,12 @@ char* readall(socket_buffer* sb, int* retNum)      //读取缓冲区所有的字
     }
     sb->size = 0;
     return msg;
+}
+
+int get_buffer_size(socket_buffer* sb)
+{
+    if (sb)
+        return sb->size;
+    return 0;
 }
 

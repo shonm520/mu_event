@@ -36,3 +36,5 @@ int   push_buffer(socket_buffer* sb, char* msg, int sz);
 void  release_free_node(socket_buffer* sb);
 char* read_buffer(socket_buffer* sb, int sz);
 char* readall(socket_buffer* sb, int* retNum);   
+
+int get_buffer_size(socket_buffer* sb);

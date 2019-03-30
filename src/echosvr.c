@@ -1,16 +1,16 @@
 
-/* HTTP长连接压力测试 */
 
 #include <stdio.h>
 
 #include "servermanager.h"
 #include "connection.h"
 #include "listner.h"
+#include "buffer.h"
 
 void request_handler(connection *conn)
 {
-	static char buf[] = "HTTP/1.1 200 0K\r\nConnection:keep-alive\r\nContent-length:4\r\n\r\n"
-						"this is a test";
+	//static char buf[] = "HTTP/1.1 200 0K\r\nConnection:keep-alive\r\nContent-length:4\r\n\r\n"
+	//					"this is a test";
 
 	//static char buf[] = "HTTP/1.0 200 OK\r\n";
 	
@@ -21,7 +21,11 @@ void request_handler(connection *conn)
 	//array_clear(conn->input_buffer);
 
 	//connection_free(conn);
+    int size = 0;
+    char* msg = readall(conn->buf_socket_read, &size);
+    printf("read all : %s, %d\n", msg, size);
 
+    char buf[] = "123456";
     connection_send(conn, buf, sizeof(buf) - 1);
 }
 
