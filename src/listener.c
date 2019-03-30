@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <stdio.h>
 #include "listner.h"
 #include "servermanager.h"
 #include "event.h"

@@ -1,6 +1,7 @@
 #include <sys/epoll.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 #include "event.h"
 #include "servermanager.h"
 #include "event_loop.h"
