@@ -37,6 +37,7 @@ inet_address addr_create(const char *ip, int port)
 	return new_addr;
 }
 
+void disconnected_callback(connection* conn);
 
 static void event_accept_callback(int listenfd, event* ev, void* arg)
 {
@@ -76,7 +77,10 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	i++;
 	
 	if (ls->new_connection_callback)
-		ls->new_connection_callback(conn);
+        conn->connected_cb = ls->new_connection_callback;
+        connection_established(conn);
+
+    conn->disconnected_cb = disconnected_callback;
 }
 
 
@@ -118,7 +122,7 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
         }
 
         ls_event = event_create(listen_fd, EPOLLIN | EPOLLPRI,
-                                    event_accept_callback, ls, NULL, NULL);       //后面参数是读写回调
+                                    event_accept_callback, ls, NULL, NULL);       //后面参数是读写回调及其参数
         if (ls_event == NULL)  {
             bOk = 4;
             break;
@@ -139,4 +143,9 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
         event_add_io(manager->epoll_fd, ls_event);
     }
 	
+}
+
+void disconnected_callback(connection* conn)
+{
+    
 }

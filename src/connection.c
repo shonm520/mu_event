@@ -50,8 +50,8 @@ static void event_readable_callback(int fd, event* ev, void* arg)
 
 static void handle_close(connection* conn)
 {
-    connection_free(conn);    //如不关闭一直会触发
-    printf("closed!!! \n");
+    printf("handle_close!!! \n");
+    connection_disconnected(conn);
 }
 
 static void event_writable_callback(int fd, event* ev, void* arg)
@@ -95,6 +95,20 @@ connection* connection_create(event_loop* loop, int connfd, message_callback_pt 
     conn->buf_socket_write = socket_buffer_new();
 
     return conn;    
+}
+
+void connection_established(connection* conn)
+{
+    if (conn->connected_cb)
+        conn->connected_cb(conn);
+}
+
+void connection_disconnected(connection* conn)
+{
+    if (conn->disconnected_cb)  {
+        conn->disconnected_cb(conn);
+    }
+    connection_free(conn);    //如不关闭一直会触发
 }
 
 void connection_free(connection* conn)
