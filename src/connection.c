@@ -15,6 +15,35 @@
 
 
 static void handle_close(connection* conn);
+static void event_readable_callback(int fd, event* ev, void* arg);
+static void event_writable_callback(int fd, event* ev, void* arg);
+
+connection* connection_create(event_loop* loop, int connfd, message_callback_pt msg_cb)
+{
+    connection* conn = (connection* )mu_malloc(sizeof(connection));
+    if (conn == NULL)  {
+        debug_ret("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
+        return NULL;
+    }
+
+    conn->fd = connfd;
+    conn->message_callback = msg_cb;
+
+    event* ev = (event*)event_create(connfd,  EPOLLIN | EPOLLPRI, event_readable_callback, 
+                            conn, event_writable_callback, conn);
+    if (ev == NULL)  {
+        debug_ret("create event failed, file: %s, line: %d", __FILE__, __LINE__);
+        mu_free(conn);
+        return NULL;
+    }
+
+    conn->conn_event = ev;
+    event_add_io(loop->epoll_fd, ev);
+    conn->buf_socket_read  = socket_buffer_new();
+    conn->buf_socket_write = socket_buffer_new();
+
+    return conn;    
+}
 
 static void event_readable_callback(int fd, event* ev, void* arg)
 {
@@ -48,16 +77,9 @@ static void event_readable_callback(int fd, event* ev, void* arg)
     }
 }
 
-static void handle_close(connection* conn)
-{
-    printf("handle_close!!! \n");
-    connection_disconnected(conn);
-}
-
 static void event_writable_callback(int fd, event* ev, void* arg)
 {
     connection* conn = (connection*)arg;
-
     int size = 0;
     char* msg = readall(conn->buf_socket_write, &size);
     if (size > 0)  {
@@ -70,31 +92,10 @@ static void event_writable_callback(int fd, event* ev, void* arg)
     //printf("write buf is %d !!! \n", size);
 }
 
-connection* connection_create(event_loop* loop, int connfd, message_callback_pt msg_cb)
+static void handle_close(connection* conn)
 {
-    connection* conn = (connection* )mu_malloc(sizeof(connection));
-    if (conn == NULL)  {
-        debug_ret("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
-        return NULL;
-    }
-
-    conn->fd = connfd;
-    conn->message_callback = msg_cb;
-
-    event* ev = (event*)event_create(connfd,  EPOLLIN | EPOLLPRI, event_readable_callback, 
-                            conn, event_writable_callback, conn);
-    if (ev == NULL)  {
-        debug_ret("create event failed, file: %s, line: %d", __FILE__, __LINE__);
-        mu_free(conn);
-        return NULL;
-    }
-
-    conn->conn_event = ev;
-    event_add_io(loop->epoll_fd, ev);
-    conn->buf_socket_read  = socket_buffer_new();
-    conn->buf_socket_write = socket_buffer_new();
-
-    return conn;    
+    printf("handle_close!!! \n");
+    connection_disconnected(conn);
 }
 
 void connection_established(connection* conn)
@@ -123,11 +124,11 @@ void connection_free(connection* conn)
 void connection_send(connection *conn, char *buf, size_t len)
 {
     //printf("size in write is %d\n", conn->buf_socket_write->size);
-    if (conn->buf_socket_write->size == 0)  {     //缓冲区为空直接发送
+    if (conn->buf_socket_write->size == 0)  {                //缓冲区为空直接发送
         send(conn->fd, buf, len, 0);
     }
     else  {
         push_buffer(conn->buf_socket_write, buf, len);
-        event_enable_writing(conn->conn_event);
+        event_enable_writing(conn->conn_event);              //须开启才能发送
     }
 }
