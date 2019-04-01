@@ -12,17 +12,17 @@ int main()
     push_buffer(sb, "xyzmnl", 6);
     
     int size = 0;
-    char* msg = read_buffer(sb, 8);
-    printf("read %s, %d\n\n", msg, size);
-    printf("aft read sb->size is %d\n", sb->size);
+    char* msg = read_buffer(sb, 28, NULL);
+    printf("read %s, %d\n", msg, size);
+    printf("aft read sb->size is %d\n\n", sb->size);
 
-    msg = read_buffer(sb, 8);
-    printf("read %s, %d\n\n", msg, size);
-    printf("aft read sb->size is %d\n", sb->size);
+    msg = read_buffer(sb, 18, &size);
+    printf("read %s, %d\n", msg, size);
+    printf("aft read sb->size is %d\n\n", sb->size);
 
     msg = readall(sb, &size);
-    printf("read %s, %d\n\n", msg, size);
-    printf("aft read sb->size is %d\n", sb->size);
+    printf("read %s, %d\n", msg, size);
+    printf("aft read sb->size is %d\n\n", sb->size);
 
     socket_buffer_free(sb);
     return 0;

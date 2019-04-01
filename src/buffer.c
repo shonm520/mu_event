@@ -99,11 +99,19 @@ void release_free_node(socket_buffer* sb)    //返回给缓冲池
 }
 
 
-char* read_buffer(socket_buffer* sb, int sz)    //读取缓冲区sz个字节
+char* read_buffer(socket_buffer* sb, int sz, int* realSz)    //读取缓冲区sz个字节
 {
-    if (sb->size < sz || sz == 0)  {    //缓冲区数据不够
+    if (sz == 0)  {
         return NULL;
-    } 
+    }
+    if (sb->size < sz)  {     //缓冲区数据不够
+        if (realSz)  {
+            return readall(sb, realSz);
+        }
+        else {
+            return NULL;
+        }
+    }
 
     buffer_pool* pool = sb->pool;   
     sb->size -= sz;
@@ -140,6 +148,9 @@ char* read_buffer(socket_buffer* sb, int sz)    //读取缓冲区sz个字节
                 break;
             }
             cur = sb->head;    //由于上面释放过，这里是新的结点
+            if (!cur)   { 
+                break;
+            }
         }
         return msg;
     }
