@@ -21,7 +21,7 @@ static void event_readable_callback(int fd, event* ev, void* arg)
     connection* conn = (connection*)arg;
     int size = 0;
     if (ioctl(fd, FIONREAD, &size) < 0)
-		debug_sys("file: %s, line: %d", __FILE__, __LINE__);	/* exit */
+		debug_sys("ioctl failed, file: %s, line: %d", __FILE__, __LINE__);	/* exit */
 
     char* buf = (char*)mu_malloc(size);
     int closing = false;
@@ -35,7 +35,7 @@ static void event_readable_callback(int fd, event* ev, void* arg)
         else if (real_n < 0)  {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
                 break;
-            debug_sys("file: %s, line: %d", __FILE__, __LINE__);
+            debug_sys("read n < 0, file: %s, line: %d", __FILE__, __LINE__);
         }
 
         push_buffer(conn->buf_socket_read, buf, real_n);
@@ -74,7 +74,7 @@ connection* connection_create(event_loop* loop, int connfd, message_callback_pt 
 {
     connection* conn = (connection* )mu_malloc(sizeof(connection));
     if (conn == NULL)  {
-        debug_ret("file: %s, line: %d", __FILE__, __LINE__);
+        debug_ret("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -84,7 +84,7 @@ connection* connection_create(event_loop* loop, int connfd, message_callback_pt 
     event* ev = (event*)event_create(connfd,  EPOLLIN | EPOLLPRI, event_readable_callback, 
                             conn, event_writable_callback, conn);
     if (ev == NULL)  {
-        debug_ret("file: %s, line: %d", __FILE__, __LINE__);
+        debug_ret("create event failed, file: %s, line: %d", __FILE__, __LINE__);
         mu_free(conn);
         return NULL;
     }

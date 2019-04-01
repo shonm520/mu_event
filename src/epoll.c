@@ -10,13 +10,12 @@
 #include "event.h"
 
 
-#define MAX_EVENTS  32
 
 int epoller_create()
 {
     int epoll_fd = epoll_create(1024);  //大于0就好
     if (epoll_fd == -1)  {
-         debug_ret("file : %s, line : %d", __FILE__, __LINE__);
+         debug_ret("create epoll failed, file : %s, line : %d", __FILE__, __LINE__);
         return -1;
     }
     return epoll_fd;
@@ -34,7 +33,7 @@ void epoller_add(int epoll_fd, event* e)
     ev.data.ptr = e;
 
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, e->fd, &ev) == -1)  {
-        debug_sys("file : %s, line : %d", __FILE__, __LINE__);
+        debug_sys("epoll_ctl add failed, file : %s, line : %d", __FILE__, __LINE__);
     }
 }
 
@@ -44,7 +43,7 @@ void epoller_del(int epoll_fd, event* e)
     ev.events = e->event_flag;
 
     if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, e->fd, &ev) == -1)  {
-        debug_sys("file : %s, line : %d", __FILE__, __LINE__);
+        debug_sys("epoll_ctl del failed, file : %s, line : %d", __FILE__, __LINE__);
     }
 }
 
@@ -55,7 +54,7 @@ void epoller_modify(int epoll_fd, event* e)
     ev.data.ptr = e;
 
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, e->fd, &ev) == -1)  {
-        debug_sys("file : %s, line : %d", __FILE__, __LINE__);
+        debug_sys("epoll_fd modify failed, file : %s, line : %d", __FILE__, __LINE__);
     }
 }
 
@@ -69,7 +68,7 @@ struct timeval epoller_dispatch(int epoll_fd, int timeout)
     gettimeofday(&now, NULL);
     if (nfds == -1)  {
         if (errno != EINTR)  {
-            debug_sys("file : %s, line : %d", __FILE__, __LINE__);
+            debug_sys("epoll_wait failed, file : %s, line : %d", __FILE__, __LINE__);
         }
     }
 

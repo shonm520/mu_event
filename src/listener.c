@@ -21,7 +21,7 @@ extern event_loop *g_loops[4];
 inet_address addr_create(const char *ip, int port)
 {
 	if (ip == NULL)
-		debug_quit("file: %s, line: %d", __FILE__, __LINE__);
+		debug_quit("addr_create failed, ip is null, file: %s, line: %d", __FILE__, __LINE__);
 	
 	inet_address new_addr;
 
@@ -31,7 +31,7 @@ inet_address addr_create(const char *ip, int port)
 	if (strcmp(ip, "any") == 0)
 		new_addr.addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	else if(inet_pton(AF_INET, ip, &new_addr.addr.sin_addr) <= 0)
-		debug_quit("file: %s, line: %d", __FILE__, __LINE__);
+		debug_quit("inet_pton failed, file: %s, line: %d", __FILE__, __LINE__);
 	
 	new_addr.addr.sin_port = htons(port);
 	return new_addr;
@@ -46,8 +46,6 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	
 	int connfd = accept(listenfd, (struct sockaddr *)&client_addr.addr,	&clilen);
 	if (connfd < 0)  {
-		debug_ret("file: %s, line: %d", __FILE__, __LINE__);
-		
 		int save = errno;
 		if (save == EAGAIN || save == ECONNABORTED || save == EINTR
 			|| save == EPROTO || save == EPERM || save == EMFILE)
@@ -55,7 +53,7 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 			return;
 		}
 		else  {
-			debug_sys("file: %s, line: %d", __FILE__, __LINE__);
+			debug_sys("accept failed, file: %s, line: %d", __FILE__, __LINE__);
 		}
 	}
 
@@ -73,7 +71,7 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	
 	connection *conn = connection_create(g_loops[i], connfd, ls->msg_callback);      //后面的参数是指有消息时的用户回调
 	if (conn == NULL)  {
-		debug_quit("file: %s, line: %d", __FILE__, __LINE__);
+		debug_quit("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
 	}
 	i++;
 	
@@ -87,7 +85,7 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
 {
     listener* ls = (listener*)malloc(sizeof(listener));
     if (ls == NULL)  {
-        debug_ret("file: %s, line: %d", __FILE__, __LINE__);
+        debug_ret("create listener failed, file: %s, line: %d", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -101,6 +99,7 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
     do {
         listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);     //创建非阻塞套接字 
         if (listen_fd < 0)  {
+            bOk = 1;
             break;
         }
 
@@ -108,17 +107,20 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
         setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
         int ret = bind(listen_fd, (struct sockaddr *)&ls_addr.addr, sizeof(ls_addr.addr));
         if (ret < 0)  {
+            bOk = 2;
             break;
         }
 
         ret = listen(listen_fd, SOMAXCONN);
         if (ret < 0)  {
+            bOk = 3;
             break;
         }
 
         ls_event = event_create(listen_fd, EPOLLIN | EPOLLPRI,
                                     event_accept_callback, ls, NULL, NULL);       //后面参数是读写回调
         if (ls_event == NULL)  {
+            bOk = 4;
             break;
         }
 
@@ -126,7 +128,7 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
     } while(0);
 
     if (bOk == -1)  {
-        debug_ret("file: %s, line: %d", __FILE__, __LINE__);
+        debug_ret("create listener failed, error code is %d, file: %s, line: %d", bOk, __FILE__, __LINE__);
         if (listen_fd > 0)  {
             close(listen_fd);
         }

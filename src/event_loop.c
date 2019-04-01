@@ -10,13 +10,13 @@ event_loop* event_loop_create()
 {
     event_loop* loop = (event_loop*)mu_malloc(sizeof(event_loop));
     if (loop == NULL)  {
-        debug_ret("file : %s, line : %d", __FILE__, __LINE__);
+        debug_ret("create event loop failed, file : %s, line : %d", __FILE__, __LINE__);
         return NULL;
     }
 
     loop->epoll_fd = epoller_create();
     if (loop->epoll_fd == -1)  {
-        debug_ret("file : %s, line : %d", __FILE__, __LINE__);
+        debug_ret("epooler_create failed, file : %s, line : %d", __FILE__, __LINE__);
         mu_free(loop);
         return NULL;
     }

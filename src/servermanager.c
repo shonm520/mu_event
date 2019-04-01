@@ -26,13 +26,13 @@ server_manager* server_manager_create()
     server_manager* manager = (server_manager*)malloc(sizeof(server_manager));
 
     if (manager == NULL)  {
-		debug_ret("file: %s, line: %d", __FILE__, __LINE__);
+		debug_ret("create server_manager failed, file: %s, line: %d", __FILE__, __LINE__);
 		return NULL;
 	}
 	
 	manager->epoll_fd = epoller_create();
 	if (manager->epoll_fd == -1)  {
-		debug_ret("file: %s, line: %d", __FILE__, __LINE__);
+		debug_ret("create epoller failed, file: %s, line: %d", __FILE__, __LINE__);
 		free(manager);
 		return NULL;
 	}
