@@ -6,12 +6,11 @@
 #include "servermanager.h"
 #include "event_loop.h"
 #include "epoll.h"
+#include "config.h"
 
 
-#define MAX_LOOP 4
 
 event_loop *g_loops[MAX_LOOP];
-
 
 
 void* spawn_thread(void *arg)

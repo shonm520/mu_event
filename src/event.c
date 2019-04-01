@@ -63,15 +63,6 @@ void event_add_io(int epoll_fd, event* ev)
     ev->is_working = 1;
 }
 
-void event_add_flag(event* ev, int add_flag, int plus)
-{
-    int flag = ev->event_flag |= add_flag;
-    if (plus == 0)  {
-        flag = ev->event_flag &= ~add_flag;
-    }
-    event_modify_flag(ev, flag);
-}
-
 void event_modify_flag(event* ev, int new_flag)
 {
     if (ev->is_working == 0)  {
@@ -80,6 +71,15 @@ void event_modify_flag(event* ev, int new_flag)
     }
     ev->event_flag = new_flag;
     epoller_modify(ev->epoll_fd, ev);
+}
+
+void event_add_flag(event* ev, int add_flag, int plus)
+{
+    int flag = ev->event_flag |= add_flag;
+    if (plus == 0)  {
+        flag = ev->event_flag &= ~add_flag;
+    }
+    event_modify_flag(ev, flag);
 }
 
 void event_enable_writing(event* ev)

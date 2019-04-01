@@ -1,11 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buffer.h"
+#include "config.h"
 
-#define LARGE_PAGE_NODE 12
-
-#define mu_malloc malloc
-#define mu_free   free
 
 socket_buffer* socket_buffer_new()
 {

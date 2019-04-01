@@ -1,7 +1,5 @@
 #pragma once
 
-#define NULL 0
-
 struct buffer_node_t {
     char* msg;
     int sz;

@@ -14,8 +14,7 @@ typedef struct buffer_pool_t   buffer_pool;
 
 struct connection_t  {
     int fd;
-    event* conn_event;    //为了在清理阶段一起销毁,处理这个作用，其实完全没有必要包含在这里
-
+    event* conn_event;    //清理阶段和改变事件时用到
     message_callback_pt message_callback;
 
     socket_buffer*  buf_socket_read;

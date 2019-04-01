@@ -11,9 +11,8 @@
 #include "logger.h"
 #include "event.h"
 #include "buffer.h"
+#include "config.h"
 
-#define mu_malloc malloc
-#define mu_free   free
 
 static void handle_close(connection* conn);
 
@@ -25,11 +24,11 @@ static void event_readable_callback(int fd, event* ev, void* arg)
 		debug_sys("file: %s, line: %d", __FILE__, __LINE__);	/* exit */
 
     char* buf = (char*)mu_malloc(size);
-    int closing = 0;
+    int closing = false;
     do  {
         ssize_t	real_n = read(fd, buf, size);
         if (real_n == 0)  { 
-            closing = 1; 
+            closing = true; 
             handle_close(conn);
             break;
         }
@@ -44,7 +43,7 @@ static void event_readable_callback(int fd, event* ev, void* arg)
         mu_free(buf);
     } 
     while(size > 0);
-    if (closing == 0)  {
+    if (closing == false)  {
         conn->message_callback(conn);
     }
 }
