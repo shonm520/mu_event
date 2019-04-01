@@ -29,17 +29,22 @@ server_manager* server_manager_create(int port, int thread_num)
 		return NULL;
 	}
 	manager->listen_port = port;
-	manager->epoll_fd = epoller_create();
-	if (manager->epoll_fd == -1)  {
-		debug_ret("create epoller failed, file: %s, line: %d", __FILE__, __LINE__);
-		free(manager);
-		return NULL;
-	}
+
+    manager->loop = event_loop_create();
+    if (manager->loop == NULL)  {
+        debug_ret("create epoller failed, file: %s, line: %d", __FILE__, __LINE__);
+	 	mu_free(manager);
+	 	return NULL;
+    }
 
     signal(SIGPIPE, SIG_IGN);
 
-    int i = 0;
+    if (thread_num < 0) {
+        thread_num = MAX_LOOP;
+    }
+    manager->loop_num = thread_num;
     pthread_t tid;
+    int i = 0;
 	for (i = 0; i < thread_num; i++)  {
 		pthread_create(&tid, NULL, spawn_thread, (void *)i);
 	}
@@ -51,8 +56,5 @@ server_manager* server_manager_create(int port, int thread_num)
 
 void server_manager_run(server_manager* manager)
 {
-    int timeout = -1;    //阻塞等待
-    while(1)  {
-        epoller_dispatch(manager->epoll_fd, timeout);
-    }
+    event_loop_run(manager->loop);
 }

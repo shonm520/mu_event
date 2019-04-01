@@ -22,9 +22,6 @@ typedef struct listener_t listener;
 struct listener_t  {
     inet_address listen_addr;
     //event* ls_event;
-
-    connection_callback_pt new_connection_callback;
-    message_callback_pt msg_callback;
 };
 
 typedef struct server_manager_t server_manager;
