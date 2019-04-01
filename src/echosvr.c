@@ -6,6 +6,7 @@
 #include "connection.h"
 #include "listner.h"
 #include "buffer.h"
+#include "config.h"
 
 void request_handler(connection *conn)
 {
@@ -34,10 +35,21 @@ void new_conn_cb(connection* conn)
     printf("connected!!!!\n");
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	server_manager *manager = server_manager_create();
-	inet_address addr = addr_create("any", 2019);
+    int port = DEFAULT_PORT;
+    int thread_num = MAX_LOOP;
+    if (argc >= 2)
+        port = atoi(argv[1]);
+    if (argc >= 3)
+        thread_num = atoi(argv[2]);
+    if (thread_num <= 0)  {
+        thread_num = MAX_LOOP;
+    }
+    printf("port, thread_num is %d, %d \n", port, thread_num);
+
+	server_manager *manager = server_manager_create(port, thread_num);
+	inet_address addr = addr_create("any", port);
 	listener_create(manager, addr, request_handler, new_conn_cb);
 	server_manager_run(manager);
 

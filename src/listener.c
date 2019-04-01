@@ -59,10 +59,10 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	}
 
 	
-	char buff[50];
-	printf("connection from %s, port %d\n",
-			inet_ntop(AF_INET, &client_addr.addr.sin_addr, buff, sizeof(buff)),
-			ntohs(client_addr.addr.sin_port));
+	//char buff[50];
+	//printf("connection from %s, port %d\n",
+	//		inet_ntop(AF_INET, &client_addr.addr.sin_addr, buff, sizeof(buff)),
+	//		ntohs(client_addr.addr.sin_port));
 
 	fcntl(connfd, F_SETFL, fcntl(connfd, F_GETFL) | O_NONBLOCK);
 
@@ -131,7 +131,7 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
         bOk = 0;
     } while(0);
 
-    if (bOk == -1)  {
+    if (bOk != 0)  {
         debug_ret("create listener failed, error code is %d, file: %s, line: %d", bOk, __FILE__, __LINE__);
         if (listen_fd > 0)  {
             close(listen_fd);

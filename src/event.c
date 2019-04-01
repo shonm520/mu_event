@@ -18,13 +18,11 @@ void event_handler(event* ev)
         if (ev->event_read_handler)  {
             ev->event_read_handler(ev->fd, ev, ev->r_arg);
         }
-        printf("read event\n");
     }
     if (ev->active_event & EPOLLOUT)  {
         if (ev->event_write_handler)  {
             ev->event_write_handler(ev->fd, ev, ev->w_arg);
         }
-        printf("write event\n");
     }
 }
 

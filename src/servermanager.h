@@ -3,6 +3,7 @@
 
 struct server_manager_t {
     int epoll_fd;
+    int listen_port;
 };
 
 

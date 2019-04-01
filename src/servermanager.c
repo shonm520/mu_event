@@ -21,15 +21,14 @@ void* spawn_thread(void *arg)
 }
 
 
-server_manager* server_manager_create()
+server_manager* server_manager_create(int port, int thread_num)
 {
     server_manager* manager = (server_manager*)malloc(sizeof(server_manager));
-
     if (manager == NULL)  {
 		debug_ret("create server_manager failed, file: %s, line: %d", __FILE__, __LINE__);
 		return NULL;
 	}
-	
+	manager->listen_port = port;
 	manager->epoll_fd = epoller_create();
 	if (manager->epoll_fd == -1)  {
 		debug_ret("create epoller failed, file: %s, line: %d", __FILE__, __LINE__);
@@ -41,7 +40,7 @@ server_manager* server_manager_create()
 
     int i = 0;
     pthread_t tid;
-	for (i = 0; i < MAX_LOOP; i++)  {
+	for (i = 0; i < thread_num; i++)  {
 		pthread_create(&tid, NULL, spawn_thread, (void *)i);
 	}
 	

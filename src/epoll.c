@@ -73,9 +73,6 @@ struct timeval epoller_dispatch(int epoll_fd, int timeout)
         }
     }
 
-    printf("!!!!!nfds is %d\n", nfds);
-    sleep(0.21);
-
     int i;
     event* ev;
     for (i = 0; i < nfds; i++)  {

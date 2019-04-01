@@ -94,7 +94,7 @@ static void event_writable_callback(int fd, event* ev, void* arg)
 
 static void handle_close(connection* conn)
 {
-    printf("handle_close!!! \n");
+    //printf("handle_close!!! \n");
     connection_disconnected(conn);
 }
 
