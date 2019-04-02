@@ -23,7 +23,7 @@ struct server_manager_t {
 typedef struct server_manager_t server_manager;
 
 
-server_manager* server_manager_create();
+server_manager* server_manager_create(int port, int thread_num);
 void server_manager_run(server_manager* manager);
 
  

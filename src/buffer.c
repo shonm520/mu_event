@@ -9,6 +9,7 @@ socket_buffer* socket_buffer_new()
     socket_buffer* sb = (socket_buffer*)mu_malloc(sizeof(socket_buffer));
     sb->size = 0;
     sb->offset = 0;
+    sb->head = sb->tail = NULL;
     sb->pool = (buffer_pool*)mu_malloc(sizeof(buffer_pool));
     sb->pool->head = NULL;
     sb->pool->len = 0;

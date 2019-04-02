@@ -6,7 +6,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <stdio.h>
-#include "listner.h"
+#include "listener.h"
 #include "servermanager.h"
 #include "event.h"
 #include "logger.h"
@@ -70,9 +70,9 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	if (i == manager->loop_num)
 		i = 0;
     
-    event_loop* loop = g_loops[i];
+    event_loop* loop = g_loops[i++];
 
-    if (manager->loop_num == 0)  {
+    if (manager->loop_num == 0)  {     //如果没有开启线程则用主线程的
         loop = manager->loop;
     }
 	
@@ -80,7 +80,6 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	if (conn == NULL)  {
 		debug_quit("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
 	}
-	i++;
 	
 	if (manager->new_connection_callback)
         conn->connected_cb = manager->new_connection_callback;
