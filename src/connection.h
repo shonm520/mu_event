@@ -14,7 +14,7 @@ typedef struct socket_buffer_t socket_buffer;
 typedef struct buffer_pool_t   buffer_pool;
 
 struct connection_t  {
-    int fd;
+    int connfd;
     event* conn_event;    //清理阶段和改变事件时用到
     message_callback_pt      message_callback;
     connection_callback_pt   connected_cb;

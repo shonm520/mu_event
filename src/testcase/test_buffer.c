@@ -7,20 +7,20 @@ int main()
 {
     socket_buffer* sb = socket_buffer_new();
 
-    push_buffer(sb, "123456", 6);
-    push_buffer(sb, "abcdef", 6);
-    push_buffer(sb, "xyzmnl", 6);
+    buffer_push_data(sb, "123456", 6);
+    buffer_push_data(sb, "abcdef", 6);
+    buffer_push_data(sb, "xyzmnl", 6);
     
     int size = 0;
-    char* msg = read_buffer(sb, 28, NULL);
+    char* msg = buffer_read_spec(sb, 28, NULL);
     printf("read %s, %d\n", msg, size);
     printf("aft read sb->size is %d\n\n", sb->size);
 
-    msg = read_buffer(sb, 18, &size);
+    msg = buffer_read_spec(sb, 18, &size);
     printf("read %s, %d\n", msg, size);
     printf("aft read sb->size is %d\n\n", sb->size);
 
-    msg = readall(sb, &size);
+    msg = buffer_read_all(sb, &size);
     printf("read %s, %d\n", msg, size);
     printf("aft read sb->size is %d\n\n", sb->size);
 

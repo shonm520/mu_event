@@ -44,7 +44,7 @@ buffer_node* new_buffer_node(int size)
 }
 
 
-int push_buffer(socket_buffer* sb, char* msg, int sz)     //写数据到缓冲池中的新结点，然后sb指向新结点
+int buffer_push_data(socket_buffer* sb, char* msg, int sz)     //写数据到缓冲池中的新结点，然后sb指向新结点
 {
     if (msg == NULL || sz == 0)  {
         return 0;
@@ -83,7 +83,7 @@ int push_buffer(socket_buffer* sb, char* msg, int sz)     //写数据到缓冲�
 }
 
 
-void release_free_node(socket_buffer* sb)    //返回给缓冲池
+void buffer_node_release(socket_buffer* sb)    //返回给缓冲池
 {
     buffer_pool* pool = sb->pool;
     buffer_node* free_node = sb->head;     //把头结点释放
@@ -100,14 +100,14 @@ void release_free_node(socket_buffer* sb)    //返回给缓冲池
 }
 
 
-char* read_buffer(socket_buffer* sb, int sz, int* realSz)    //读取缓冲区sz个字节
+char* buffer_read_spec(socket_buffer* sb, int sz, int* realSz)    //读取缓冲区sz个字节
 {
     if (sz == 0)  {
         return NULL;
     }
     if (sb->size < sz)  {     //缓冲区数据不够
         if (realSz)  {
-            return readall(sb, realSz);
+            return buffer_read_all(sb, realSz);
         }
         else {
             return NULL;
@@ -123,7 +123,7 @@ char* read_buffer(socket_buffer* sb, int sz, int* realSz)    //读取缓冲区sz
         memcpy(msg, cur->msg + sb->offset, sz);
         sb->offset += sz;
         if (sz == curLen)  {        //刚好读完就释放该结点
-            release_free_node(sb);    
+            buffer_node_release(sb);    
         }
         return msg;
     }
@@ -136,14 +136,14 @@ char* read_buffer(socket_buffer* sb, int sz, int* realSz)    //读取缓冲区sz
                 offset += sz;
                 sb->offset += sz;
                 if (curLen == sz)  {
-                    release_free_node(sb);
+                    buffer_node_release(sb);
                 }
                 break;
             }
             int real_sz = (sz < curLen) ? sz : curLen;
             memcpy(msg + offset, cur->msg + sb->offset, real_sz);   //先把当前结点剩余的的数据给读取了
             offset += real_sz;
-            release_free_node(sb);
+            buffer_node_release(sb);
             sz -= curLen;
             if (sz == 0)  {
                 break;
@@ -158,12 +158,9 @@ char* read_buffer(socket_buffer* sb, int sz, int* realSz)    //读取缓冲区sz
     return NULL;
 }
 
-char* readall(socket_buffer* sb, int* retNum)      //读取缓冲区所有的字节
+char* buffer_read_all(socket_buffer* sb, int* retNum)      //读取缓冲区所有的字节
 {
     int total_size = sb->size;
-    if (retNum)  {
-        *retNum = total_size;
-    }
     if (total_size <= 0)  {
         return NULL;
     }
@@ -175,13 +172,16 @@ char* readall(socket_buffer* sb, int* retNum)      //读取缓冲区所有的字
 
         memcpy(msg + offset, cur->msg + sb->offset, curLen);
         offset += curLen; 
-        release_free_node(sb);       //这里会重置sb->offset并重新设置头
+        buffer_node_release(sb);       //这里会重置sb->offset并重新设置头
+    }
+     if (retNum)  {
+        *retNum = offset;
     }
     sb->size = 0;
     return msg;
 }
 
-int get_buffer_size(socket_buffer* sb)
+int buffer_get_size(socket_buffer* sb)
 {
     if (sb)
         return sb->size;

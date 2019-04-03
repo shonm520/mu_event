@@ -37,7 +37,10 @@ inet_address addr_create(const char *ip, int port)
 	return new_addr;
 }
 
-void disconnected_callback(connection* conn);
+static void default_disconnected_callback(connection* conn)
+{
+
+}
 
 static void event_accept_callback(int listenfd, event* ev, void* arg)
 {
@@ -85,7 +88,7 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
         conn->connected_cb = manager->new_connection_callback;
         connection_established(conn);
 
-    conn->disconnected_cb = disconnected_callback;
+    conn->disconnected_cb = default_disconnected_callback;
 }
 
 
@@ -109,7 +112,7 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
     manager->new_connection_callback = new_con_cb;
 
     int bOk = -1;
-    event* ls_event = NULL;
+    event* lev = NULL;
     int listen_fd;
     do {
         listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);     //创建非阻塞套接字 
@@ -132,9 +135,9 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
             break;
         }
 
-        ls_event = event_create(listen_fd, EPOLLIN | EPOLLPRI,
+        lev = event_create(listen_fd, EPOLLIN | EPOLLPRI,
                                     event_accept_callback, manager, NULL, NULL);       //后面参数是读写回调及其参数
-        if (ls_event == NULL)  {
+        if (lev == NULL)  {
             bOk = ERR_EVENT;
             break;
         }
@@ -151,12 +154,8 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
         return NULL;
     }  
     else  {
-        event_add_io(manager->loop->epoll_fd, ls_event);
+        event_add_io(manager->loop->epoll_fd, lev);
     }
 	
 }
 
-void disconnected_callback(connection* conn)
-{
-    
-}

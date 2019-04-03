@@ -30,9 +30,9 @@ typedef struct buffer_pool_t   buffer_pool;
 
 socket_buffer* socket_buffer_new();
 void socket_buffer_free(socket_buffer* sb);
-int   push_buffer(socket_buffer* sb, char* msg, int sz);
-void  release_free_node(socket_buffer* sb);
-char* read_buffer(socket_buffer* sb, int sz, int* realSz);
-char* readall(socket_buffer* sb, int* retNum);   
+int   buffer_push_data(socket_buffer* sb, char* msg, int sz);
+void  buffer_node_release(socket_buffer* sb);
+char* buffer_read_spec(socket_buffer* sb, int sz, int* realSz);
+char* buffer_read_all(socket_buffer* sb, int* retNum);   
 
-int get_buffer_size(socket_buffer* sb);
+int buffer_get_size(socket_buffer* sb);
