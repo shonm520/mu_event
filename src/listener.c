@@ -70,13 +70,15 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	fcntl(connfd, F_SETFL, fcntl(connfd, F_GETFL) | O_NONBLOCK);
 
     static int i = 0;
-	if (i == manager->loop_num)
+	if (i >= manager->loop_num)
 		i = 0;
-    
-    event_loop* loop = g_loops[i++];
 
+    event_loop* loop = NULL;
     if (manager->loop_num == 0)  {     //如果没有开启线程则用主线程的
         loop = manager->loop;
+    }
+    else  {
+        loop = g_loops[i++];
     }
 	
 	connection *conn = connection_create(loop, connfd, manager->msg_callback);      //后面的参数是指有消息时的用户回调

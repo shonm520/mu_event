@@ -49,8 +49,8 @@ event* event_create(int fd, short event_flag, event_callback_pt read_cb,
 
 void event_free(event* ev)
 {
+    event_stop(ev);
     close(ev->fd);
-    //event_stop(ev);
 	free(ev);
 }
 

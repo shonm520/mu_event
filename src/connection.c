@@ -141,6 +141,10 @@ static void event_writable_callback(int fd, event* ev, void* arg)
     int left = buffer_get_size(conn->buf_socket_write);
     if (left == 0)  {        //缓存区数据已全部发送，则关闭发送消息
         event_disable_writing(conn->conn_event);
+        if (conn->state == State_Closing)  {
+            connection_free(conn);    //如不关闭一直会触发
+            conn->state = State_Closed;
+        }
     }
     //printf("write buf is %d !!! \n", size);
 }
@@ -162,7 +166,14 @@ void connection_disconnected(connection* conn)
     if (conn->disconnected_cb)  {
         conn->disconnected_cb(conn);
     }
-    connection_free(conn);    //如不关闭一直会触发
+
+    conn->state = State_Closing;
+    if (buffer_get_size(conn->buf_socket_write) > 0)   {     //收到对方关闭写的通知时，如果缓冲区还有数据要发送则等数据发送完毕后再关闭socket
+        event_enable_writing(conn->conn_event); 
+    }
+    else  {
+         connection_free(conn);    //如不关闭一直会触发
+    }
 }
 
 void connection_free(connection* conn)

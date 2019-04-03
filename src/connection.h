@@ -13,6 +13,11 @@ typedef struct event_loop_t event_loop;
 typedef struct socket_buffer_t socket_buffer;
 typedef struct buffer_pool_t   buffer_pool;
 
+enum {
+    State_Closing = 1,
+    State_Closed = 2,
+};
+
 struct connection_t  {
     int connfd;
     event* conn_event;    //清理阶段和改变事件时用到
@@ -22,6 +27,8 @@ struct connection_t  {
 
     socket_buffer*  buf_socket_read;
     socket_buffer*  buf_socket_write;
+
+    int state;
 
 };
 

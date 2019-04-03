@@ -1,21 +1,25 @@
 src = $(wildcard ./*c)
 obj = $(patsubst ./%.c, ./%.o, $(src))
 
-target = svr
+LIB = libmuevent.a
 CC = gcc
-CFLAGS = -g -lpthread
+CFLAGS := -g -lpthread 
 
-$(target):$(obj)
-	$(CC) $^ -o $@ $(CFLAGS)
-	rm -f $(obj) 
 
 
 %.o:%.c
-	$(CC) -c $< -o $@ 
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+$(LIB):$(obj)
+	rm -f $@
+	ar cr $@ $(obj)
+	rm -f $(obj) 
+
+
 
 .PHONY:clean
 clean:
-	rm -f $(obj) $(target) 
+	rm -f $(obj) $(LIB) 
 .PHONY:cleantemp
 cleantemp:
 	rm -f $(obj) 
