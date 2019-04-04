@@ -13,6 +13,7 @@
 #include "event.h"
 #include "buffer.h"
 #include "config.h"
+#include "ring_buffer.h"
 
 
 static void handle_close(connection* conn);
@@ -27,6 +28,7 @@ connection* connection_create(event_loop* loop, int connfd, message_callback_pt 
         return NULL;
     }
 
+    memset(conn, 0, sizeof(connection));
     conn->connfd = connfd;
     conn->message_callback = msg_cb;
 
@@ -40,25 +42,27 @@ connection* connection_create(event_loop* loop, int connfd, message_callback_pt 
 
     conn->conn_event = ev;
     event_add_io(loop->epoll_fd, ev);
-    conn->buf_socket_read  = socket_buffer_new();
-    conn->buf_socket_write = socket_buffer_new();
 
+    conn->ring_buffer_read  = ring_buffer_new();
+    conn->ring_buffer_write = ring_buffer_new();
+    
     return conn;    
 }
 
 static int read_buffer1(int fd, connection* conn)       //使用了readv但是好像并没有提高效率，不过使用了栈上数据，避免了malloc，free
 {
-    int nread1 = 65536;
     int nread2 = 65536;
-    char extrabuf1[nread1];
     char extrabuf2[nread2];
     struct iovec vec[2];
-    vec[0].iov_base = extrabuf1;
-    vec[0].iov_len = nread1;
+
+    char* start = ring_buffer_readable_start(conn->ring_buffer_read);
+    int available_bytes = ring_buffer_available_bytes(conn->ring_buffer_read);
+    vec[0].iov_base = start;
+    vec[0].iov_len = available_bytes;
     vec[1].iov_base = extrabuf2;
     vec[1].iov_len = nread2;
 
-    ssize_t nread = readv(fd, vec, 2);      //最多读iovec结构体指定的长度
+    ssize_t nread = readv(fd, vec, 2);      //最多读iovec结构体指定的长度,而且fd一定是非阻塞的
     if (nread == 0)  {
         return 0;
     }
@@ -71,13 +75,13 @@ static int read_buffer1(int fd, connection* conn)       //使用了readv但是�
             return -1;
         }
     }
-    else if (nread <= nread1)  {
-        buffer_push_data(conn->buf_socket_read, extrabuf1, nread);
+    else if (nread <= available_bytes)  {
+        conn->ring_buffer_read->end += nread;
         return nread;
     }
     else  {
-        buffer_push_data(conn->buf_socket_read, extrabuf1, nread1);
-        buffer_push_data(conn->buf_socket_read, extrabuf2, nread - nread1);
+        conn->ring_buffer_read->end += available_bytes;
+        ring_buffer_push_data(conn->ring_buffer_read, extrabuf2, nread - available_bytes);
         return nread;
     }
     return -1;
@@ -116,6 +120,40 @@ static int read_buffer2(int fd, connection* conn)         //另一种读数据�
     return ret;
 }
 
+static int read_buffer3(int fd, connection* conn)         //另一种读数据方式
+{
+    int size = 0;
+    if (ioctl(fd, FIONREAD, &size) < 0)  {
+        debug_sys("ioctl failed, file: %s, line: %d", __FILE__, __LINE__);	
+    }
+    int ret = size;
+    char* buf = (char*)mu_malloc(size);
+    do  {
+        ssize_t	real_n = read(fd, buf, size);
+        if (real_n == 0)  { 
+            ret = 0;
+            break;
+        }
+        else if (real_n < 0)  {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)  {
+                ret = -1;
+                break;
+            }
+            else  {
+                ret = -1;
+                debug_sys("read n < 0, file: %s, line: %d", __FILE__, __LINE__);
+                break;
+            }
+        }
+        ring_buffer_push_data(conn->ring_buffer_read, buf, real_n);
+        size -= real_n;
+    } 
+    while(size > 0);
+    mu_free(buf);
+    return ret;
+}
+
+
 static void event_readable_callback(int fd, event* ev, void* arg)
 {
     connection* conn = (connection*)arg;
@@ -136,7 +174,7 @@ static void event_writable_callback(int fd, event* ev, void* arg)
     char* msg = buffer_read_all(conn->buf_socket_write, &size);
     if (size > 0)  {
         int n = send(conn->connfd, msg, size, 0);
-        mu_free(msg);
+        mu_free(msg);  
     }
     int left = buffer_get_size(conn->buf_socket_write);
     if (left == 0)  {        //缓存区数据已全部发送，则关闭发送消息
@@ -179,22 +217,54 @@ void connection_disconnected(connection* conn)
 void connection_free(connection* conn)
 {
     event_free(conn->conn_event);
-    socket_buffer_free(conn->buf_socket_read);
-    socket_buffer_free(conn->buf_socket_write);
+    if (conn->buf_socket_read)  {
+        socket_buffer_free(conn->buf_socket_read);
+    }
+    if (conn->buf_socket_write)  {
+        socket_buffer_free(conn->buf_socket_write);
+    }
+
+    if (conn->ring_buffer_read)  {
+        ring_buffer_free(conn->ring_buffer_read);
+    }
+    if (conn->ring_buffer_write)  {
+        ring_buffer_free(conn->ring_buffer_write);
+    }
+    
+    
     mu_free(conn);
 }
 
 
 void connection_send(connection *conn, char *buf, size_t len)
 {
-    //printf("size in write is %d\n", conn->buf_socket_write->size);
     if (conn->buf_socket_write->size == 0)  {                //缓冲区为空直接发送
         int ret = send(conn->connfd, buf, len, 0);
-        //printf("send ret is %d\n", ret);
     }
     else  {
         printf("connection_send %d\n", len);
         buffer_push_data(conn->buf_socket_write, buf, len);
         event_enable_writing(conn->conn_event);              //须开启才能发送
+    }
+}
+
+int connection_send_buffer(connection *conn)
+{
+    if (ring_buffer_readable_bytes(conn->ring_buffer_write) == 0)  {                //缓冲区为空直接发送
+        int len = ring_buffer_readable_bytes(conn->ring_buffer_read);
+        char* msg = ring_buffer_readable_start(conn->ring_buffer_read);
+        int ret = send(conn->connfd, msg, len, 0);
+        ring_buffer_release_bytes(conn->ring_buffer_read, len);
+        return len;
+    }
+    else  {
+        int len = ring_buffer_readable_bytes(conn->ring_buffer_read);
+        char* msg = ring_buffer_readable_start(conn->ring_buffer_read);
+        ring_buffer_push_data(conn->ring_buffer_write, msg, len);
+        ring_buffer_release_bytes(conn->ring_buffer_read, len);
+        event_enable_writing(conn->conn_event);              //须开启才能发送
+
+        printf("connection_send %d\n", len);
+        return len;
     }
 }

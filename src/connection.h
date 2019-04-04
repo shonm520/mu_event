@@ -11,6 +11,7 @@ typedef struct event_t event;
 typedef struct event_loop_t event_loop; 
 
 typedef struct socket_buffer_t socket_buffer;
+typedef struct ring_buffer_t   ring_buffer;
 typedef struct buffer_pool_t   buffer_pool;
 
 enum {
@@ -28,6 +29,9 @@ struct connection_t  {
     socket_buffer*  buf_socket_read;
     socket_buffer*  buf_socket_write;
 
+    ring_buffer*   ring_buffer_read;
+    ring_buffer*   ring_buffer_write;
+
     int state;
 
 };
@@ -38,4 +42,6 @@ void connection_established(connection* conn);
 void connection_disconnected(connection* conn);
 void connection_free(connection* conn);
 void connection_send(connection *conn, char *buf, size_t len);
+
+int connection_send_buffer(connection *conn);
 

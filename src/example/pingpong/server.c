@@ -7,14 +7,15 @@
 
 static void onMessage(connection *conn)
 {
-    int size = 0;
-    char* msg = buffer_read_all(conn->buf_socket_read, &size);
+    //int size = 163840;
+    //char* msg = buffer_read_all(conn->buf_socket_read, &size);
+    //char* msg = mu_malloc(size);
     //printf("read all : %s, %d\n", msg, size);
 
     //printf("svr read all : %d\n", size);
 
-    connection_send(conn, msg, size);
-    mu_free(msg);
+    connection_send_buffer(conn);
+    
 }
 
 static void ondisconnect(connection* conn)

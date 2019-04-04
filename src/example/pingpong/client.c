@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <signal.h>
-#include <fcntl.h>
+#include <fcntl.h> 
+#include <netinet/tcp.h>
 #include "config.h"
 #include "connection.h"
 #include "servermanager.h"
@@ -21,26 +22,22 @@ int g_timeout = 0;
 
 static void onMessage(connection *conn)
 {
-    int size = 0;
-    char* msg = buffer_read_all(conn->buf_socket_read, &size);
+    int size = connection_send_buffer(conn);
     g_totalBytesRead += size;
     g_totalMessagesRead++;
-    //printf("cli read all : %s, %d\n", msg, size);
-    //printf("cli read all, %d\n", size);
-    connection_send(conn, msg, size);
-    mu_free(msg);
+
 
     {
         int64_t cur_time = 0;
         struct timespec spec;
     
         clock_gettime(CLOCK_MONOTONIC, &spec);
-        cur_time = (int64_t)spec.tv_sec * 1000000 + spec.tv_nsec / 1000;
+        cur_time = (int64_t)spec.tv_sec * 1000000 + spec.tv_nsec * 0.001;
 
         g_endTime = cur_time; 
 
-        double total_time = (double)(g_endTime - g_startTime) / 1000 / 1000;
-        if (total_time > g_timeout)  {
+        double total_time = (double)(g_endTime - g_startTime);
+        if (total_time > g_timeout * 1000 * 1000)  {
             //printf("total_time is %f\n", total_time);
             int ret = shutdown(conn->connfd, SHUT_WR);
         }
@@ -98,6 +95,9 @@ static void ondisconnect(connection* conn)
 static void onConnected(connection* conn)
 {
     fcntl(conn->connfd, F_SETFL, fcntl(conn->connfd, F_GETFL) | O_NONBLOCK);
+
+    int optval = 1;
+    setsockopt(conn->connfd, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval));
 
     if (g_blockSize > 64 * 1024)  {
         char* buf = mu_malloc(g_blockSize);

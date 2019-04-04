@@ -4,6 +4,9 @@ struct buffer_node_t {
     char* msg;
     int sz;
     struct buffer_node_t* next;
+
+    char* buf;
+    int cap;
 };
  
  
