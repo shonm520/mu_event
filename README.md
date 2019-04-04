@@ -5,7 +5,7 @@
 
 
 #### 下面是各数据时的吞吐量对比
-![吞吐量对比1](https://github.com/shonm520/mu_event/tree/master/src/testcase/4.png)
+![吞吐量对比1](https://upload-images.jianshu.io/upload_images/9444378-b2ae69351584481a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 #### ~~连接数为1时，muevent吞吐量没有muduo高，这个以后慢慢找到瓶颈并优化~~
 
