@@ -12,7 +12,7 @@
 #### 通过使用环形缓冲区，使得吞吐量大大提高，并超过了muduo。我想除了学习到了muduo的精华，还因为目前我的程序结构比较简单，没有其他杂项的缘故
 
 #### 下图是发送数据量为16384B，不同并发连接下的对比
-![并发时吞吐量对比2](https://github.com/shonm520/mu_event/tree/master/src/testcase/5.png)
+![并发时吞吐量对比2](https://upload-images.jianshu.io/upload_images/9444378-63e04366068867a7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ###### 可以看到多连接时（高并发时）muevent吞吐量也超过了muduo
 
