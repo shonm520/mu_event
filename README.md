@@ -5,14 +5,14 @@
 
 
 #### 下面是各数据时的吞吐量对比
-![吞吐量对比1](https://github.com/shonm520/mu_event/tree/master/src/example/pingpong/4.png)
+![吞吐量对比1](https://github.com/shonm520/mu_event/tree/master/src/testcase/4.png)
 
 #### ~~连接数为1时，muevent吞吐量没有muduo高，这个以后慢慢找到瓶颈并优化~~
 
 #### 通过使用环形缓冲区，使得吞吐量大大提高，并超过了muduo。我想除了学习到了muduo的精华，还因为目前我的程序结构比较简单，没有其他杂项的缘故
 
 #### 下图是发送数据量为16384B，不同并发连接下的对比
-![并发时吞吐量对比2](https://github.com/shonm520/mu_event/tree/master/src/example/pingpong/5.png)
+![并发时吞吐量对比2](https://github.com/shonm520/mu_event/tree/master/src/testcase/5.png)
 
 ###### 可以看到多连接时（高并发时）muevent吞吐量也超过了muduo
 
