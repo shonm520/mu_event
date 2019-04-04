@@ -13,7 +13,7 @@
 #### 下图是发送数据量为16384B，不同并发连接下的对比
 ![并发时吞吐量对比2](https://github.com/shonm520/mu_event/tree/master/src/example/pingpong/5.png)
 
-###### 可以看到并发数越大时muevent吞吐量可以和muduo媲美，甚至超越了muduo
+###### 可以看到多连接时（高并发时）muevent吞吐量也超过了muduo
 
 
 #### QQ讨论群：858791125
