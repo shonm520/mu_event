@@ -25,6 +25,20 @@ timer_manager* timer_manager_create()
 void timer_manager_free(timer_manager* m)
 {
     if (m)  {
+        timer** queue = m->queue0;
+        if (m->index == 1)  {
+            queue = m->queue1;
+        }
+        /*int i = 0;
+        for (; i < m->cap ; i++)  {
+            if (queue[i])  {
+                mu_free(queue[i]);
+            }
+            else  {
+                break;
+            }
+        }*/
+
         if(m->queue0) mu_free(m->queue0);
         if(m->queue1) mu_free(m->queue1);
     }
@@ -46,11 +60,12 @@ void timer_manager_push(timer_manager* manager, timer* ti)
     if (size >= manager->cap)  {
         timer** temp0 = manager->queue0;
         timer** temp1 = manager->queue1;
-        manager->queue0 = mu_malloc(size * manager->cap * 2);
-        manager->queue1 = mu_malloc(size * manager->cap * 2);
+        int size_of_ptr = sizeof(timer*);
+        manager->queue0 = mu_malloc(size_of_ptr * manager->cap * 2);
+        manager->queue1 = mu_malloc(size_of_ptr * manager->cap * 2);
 
-        memset(manager->queue0, 0, size * manager->cap * 2);
-        memset(manager->queue1, 0, size * manager->cap * 2);
+        memset(manager->queue0, 0, size_of_ptr * manager->cap * 2);
+        memset(manager->queue1, 0, size_of_ptr * manager->cap * 2);
 
         memcpy(manager->queue0, temp0, manager->cap);
         memcpy(manager->queue1, temp1, manager->cap);

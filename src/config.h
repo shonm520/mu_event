@@ -28,3 +28,7 @@
 
 #define DEFAULT_PORT  2019   //默认端口
 #define MAX_LOOP 4           //线程数量
+
+
+
+#define MAX_TIMER_EVENT 100 //最大定时器个数   

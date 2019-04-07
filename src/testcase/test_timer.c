@@ -14,36 +14,38 @@ int main()
     timer* t4 = timer_create(180);
     timer* t5 = timer_create(300);
     timer* t6 = timer_create(180);
-    timer_push(t, t1);
-    timer_push(t, t2);
-    timer_push(t, t3);
-    timer_push(t, t4);
-    timer_push(t, t5);
-    timer_push(t, t6);
+    timer_manager_push(t, t1);
+    timer_manager_push(t, t2);
+    timer_manager_push(t, t3);
+    timer_manager_push(t, t4);
+    timer_manager_push(t, t5);
+    timer_manager_push(t, t6);
 
     //timer* top = timer_manager_get_top(t);
 
     //printf("t top is %d\n", top->time_out);
 
-    timer* top = timer_pop(t);
+    timer* top = timer_manager_pop(t);
     printf("t top is %d\n", top->time_out);
-    top = timer_pop(t);
+    top = timer_manager_pop(t);
     printf("t top is %d\n", top->time_out);
-    top = timer_pop(t);
+    top = timer_manager_pop(t);
     printf("t top is %d\n", top->time_out);
-    top = timer_pop(t);
+    top = timer_manager_pop(t);
     printf("t top is %d\n", top->time_out);
-    top = timer_pop(t);
+    top = timer_manager_pop(t);
     printf("t top is %d\n", top->time_out);
-    top = timer_pop(t);
+    top = timer_manager_pop(t);
     printf("t top is %d\n", top->time_out);
 
 
-    timer_push(t, t3);
-    timer_push(t, t3);
-    timer_push(t, t3);
-    top = timer_pop(t);
+    timer_manager_push(t, t3);
+    timer_manager_push(t, t3);
+    timer_manager_push(t, t3);
+    top = timer_manager_pop(t);
     printf("t top is %d\n", top->time_out);
+
+    timer_manager_free(t);
 
     return 0;
 }

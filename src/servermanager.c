@@ -7,7 +7,7 @@
 #include "event_loop.h"
 #include "epoll.h"
 #include "config.h"
-
+#include "timer.h"
 
 
 event_loop *g_loops[MAX_LOOP];
@@ -52,9 +52,35 @@ server_manager* server_manager_create(int port, int thread_num)
 	return manager;
 }
 
+void server_manager_time_event(server_manager* manager, struct timeval time)
+{
+    timer_manager* tm ;
+    int i = 0; 
+    for (i = 0; i < tm->size; i++)   {
+        timer* ti = t->timer_manager_pop(tm);
+        if (ti->time_out < time)  {
+            ti->callback();
+        }
+    }
+}
+
+
+int calc_timeout(manager)
+{
+    timer_manager* t;
+    return t->top->time_out;
+}
+
 
 
 void server_manager_run(server_manager* manager)
 {
-    event_loop_run(manager->loop);
+    int timeout = -1;
+    while(1)  {
+        timeout = calc_timeout(manager);
+
+        struct timeval trigger_time = epoller_dispatch(manager->loop->epoll_fd, timeout);       //
+
+        server_manager_time_event(manager, trigger_time);
+    }
 }
