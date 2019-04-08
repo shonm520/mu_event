@@ -29,7 +29,7 @@ void timer_manager_free(timer_manager* m)
         if (m->index == 1)  {
             queue = m->queue1;
         }
-        /*int i = 0;
+        int i = 0;
         for (; i < m->cap ; i++)  {
             if (queue[i])  {
                 mu_free(queue[i]);
@@ -37,7 +37,7 @@ void timer_manager_free(timer_manager* m)
             else  {
                 break;
             }
-        }*/
+        }
 
         if(m->queue0) mu_free(m->queue0);
         if(m->queue1) mu_free(m->queue1);
@@ -54,7 +54,7 @@ timer* timer_create(int utime)
 }
 
 
-void timer_manager_push(timer_manager* manager, timer* ti)
+void timer_manager_push(timer_manager* manager, timer ti)
 {
     int size = manager->size;
     if (size >= manager->cap)  {
@@ -67,39 +67,64 @@ void timer_manager_push(timer_manager* manager, timer* ti)
         memset(manager->queue0, 0, size_of_ptr * manager->cap * 2);
         memset(manager->queue1, 0, size_of_ptr * manager->cap * 2);
 
-        memcpy(manager->queue0, temp0, manager->cap);
-        memcpy(manager->queue1, temp1, manager->cap);
+        //memcpy(manager->queue0, temp0, manager->cap);
+        //memcpy(manager->queue1, temp1, manager->cap);
+
+        if (manager->index == 0)  {
+            int i = 0;
+            for (; i < manager->size; i++)  {
+                manager->queue0[i] = temp0[i];
+            }
+        }
+        else  {
+            int i = 0;
+            for (; i < manager->size; i++)  {
+                manager->queue1[i] = temp1[i];
+            }
+        }
+
         mu_free(temp0);
         mu_free(temp1);
         manager->cap *= 2;
     }
+    timer* pti = mu_malloc(sizeof(timer));
+    *pti = ti;
     if (manager->top)  {   
-        if (ti->time_out < manager->top->time_out)  {   //替换最小的
-            manager->top = ti;
+        if (pti->time_out < manager->top->time_out)  {   //替换最小的
+            manager->top = pti;
             manager->top_index = size;
         }
     }
     else  {
-        manager->top = ti;
+        manager->top = pti;
     }
-    
-    manager->queue0[manager->size++] = ti;
+
+    if (manager->index == 0)  {
+        manager->queue0[manager->size++] = pti;
+    }
+    else  {
+        manager->queue1[manager->size++] = pti;
+    }
 }
 
 
-timer* timer_manager_pop(timer_manager* manager)
+timer timer_manager_pop(timer_manager* manager)
 {
+    timer ti;
+    ti.time_out = 0;
     if (manager == NULL)  {
-        return NULL;
+        return ti;
     }
     if (manager->size <= 0)  {
-        return NULL;
+        return ti;
     }
+    timer ret = *manager->top;
     if (manager->size == 1)  {
         manager->size = 0;
-        return manager->top;
+        return ret;
     }
-    timer* t = manager->top;
+    mu_free(manager->top);
+    manager->top = NULL;
     int top_index = manager->top_index;
     if (manager->size > 1) {
         timer* top = NULL;
@@ -116,30 +141,36 @@ timer* timer_manager_pop(timer_manager* manager)
         manager->index = (manager->index + 1) % 2; 
         int i = 0;
         int j = 0;
-        for (; i < manager->size; i++)  {
-            if (i == top_index)  {
-                continue;
-            }
-            queue1[j] = queue0[i];
-            if (top == NULL)  {
-                top = queue0[i];
-                manager->top_index = 0;
+        for (; i < manager->cap; i++)  {
+            if (i < manager->size)  {
+                if (i == top_index)  {
+                    continue;
+                }
+                queue1[j] = queue0[i];
+                if (top == NULL)  {
+                    top = queue0[i];
+                    manager->top_index = 0;
+                }
+                else  {
+                    if (queue0[i]->time_out < top->time_out)  {
+                        top = queue0[i];
+                        manager->top_index = j;
+                    }
+                }
+                j++; 
             }
             else  {
-                if (queue0[i]->time_out < top->time_out)  {
-                    top = queue0[i];
-                    manager->top_index = j;
-                }
-            }
-            j++; 
+                queue0[i] = NULL;
+                queue1[i] = NULL;
+            }   
         }
         manager->top = top;
     }
     manager->size -= 1;
-    return t;
+    return ret;
 }
 
-timer* timer_manager_get_top(timer_manager* manager)
+timer timer_manager_get_top(timer_manager* manager)
 {
-    return manager->top;
+    return *manager->top;
 }

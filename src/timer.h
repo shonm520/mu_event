@@ -24,8 +24,8 @@ timer_manager* timer_manager_create();
 
 timer* timer_create(int ut);
 
-void timer_manager_push(timer_manager* manager, timer* ti);
+void timer_manager_push(timer_manager* manager, timer ti);
 
-timer* timer_manager_pop(timer_manager* manager);
+timer timer_manager_pop(timer_manager* manager);
 
-timer* timer_manager_get_top(timer_manager* manager);
+timer timer_manager_get_top(timer_manager* manager);
