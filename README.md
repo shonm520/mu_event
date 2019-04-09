@@ -7,7 +7,6 @@
 #### 下面是各数据时的吞吐量对比
 ![吞吐量对比1](https://upload-images.jianshu.io/upload_images/9444378-b2ae69351584481a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-#### ~~连接数为1时，muevent吞吐量没有muduo高，这个以后慢慢找到瓶颈并优化~~
 
 #### 通过使用环形缓冲区，使得吞吐量大大提高，并超过了muduo。我想除了学习到了muduo的精华，还因为目前我的程序结构比较简单，没有其他杂项的缘故
 
