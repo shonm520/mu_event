@@ -45,9 +45,9 @@ void timer_manager_free(timer_manager* m)
 }
 
 
-timer* timer_create(int utime)
+timer* timer_new(int utime)
 {
-    timer* t = malloc(sizeof(timer));
+    timer* t = (timer*)malloc(sizeof(timer));
     memset(t, 0, sizeof(timer));
     t->time_out = utime;
     return t;
@@ -61,8 +61,8 @@ void timer_manager_push(timer_manager* manager, timer ti)
         timer** temp0 = manager->queue0;
         timer** temp1 = manager->queue1;
         int size_of_ptr = sizeof(timer*);
-        manager->queue0 = mu_malloc(size_of_ptr * manager->cap * 2);
-        manager->queue1 = mu_malloc(size_of_ptr * manager->cap * 2);
+        manager->queue0 = (timer**)mu_malloc(size_of_ptr * manager->cap * 2);
+        manager->queue1 = (timer**)mu_malloc(size_of_ptr * manager->cap * 2);
 
         memset(manager->queue0, 0, size_of_ptr * manager->cap * 2);
         memset(manager->queue1, 0, size_of_ptr * manager->cap * 2);
@@ -87,10 +87,11 @@ void timer_manager_push(timer_manager* manager, timer ti)
         mu_free(temp1);
         manager->cap *= 2;
     }
-    timer* pti = mu_malloc(sizeof(timer));
+    ti.time_left = ti.time_out;
+    timer* pti = (timer*)mu_malloc(sizeof(timer));
     *pti = ti;
     if (manager->top)  {   
-        if (pti->time_out < manager->top->time_out)  {   //替换最小的
+        if (pti->time_left < manager->top->time_left)  {   //替换最小的
             manager->top = pti;
             manager->top_index = size;
         }
@@ -120,6 +121,7 @@ timer timer_manager_pop(timer_manager* manager)
     }
     timer ret = *manager->top;
     if (manager->size == 1)  {
+        manager->top = NULL;
         manager->size = 0;
         return ret;
     }
@@ -152,7 +154,7 @@ timer timer_manager_pop(timer_manager* manager)
                     manager->top_index = 0;
                 }
                 else  {
-                    if (queue0[i]->time_out < top->time_out)  {
+                    if (queue0[i]->time_left < top->time_left)  {
                         top = queue0[i];
                         manager->top_index = j;
                     }
@@ -173,4 +175,21 @@ timer timer_manager_pop(timer_manager* manager)
 timer timer_manager_get_top(timer_manager* manager)
 {
     return *manager->top;
+}
+
+void timer_manager_update(timer_manager* manager, int timeout)
+{
+    timer** queue = NULL;
+    if (manager->index == 0)  {
+        queue = manager->queue0;
+    }
+    else  {
+        queue = manager->queue1;
+    }
+
+    int i = 0;
+    for (; i < manager->size; i++)  {
+        timer* ti = queue[i];
+        ti->time_left -= timeout;
+    }
 }

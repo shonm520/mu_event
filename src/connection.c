@@ -159,7 +159,7 @@ static void event_readable_callback(int fd, event* ev, void* arg)
     connection* conn = (connection*)arg;
     int nread = read_buffer1(fd, conn);
 
-    if (nread > 0)  {
+    if (nread > 0 && conn->message_callback)  {
         conn->message_callback(conn);
     }
     else if(nread == 0)  {

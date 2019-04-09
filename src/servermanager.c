@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include "logger.h"
 #include "servermanager.h"
 #include "event_loop.h"
@@ -48,27 +49,56 @@ server_manager* server_manager_create(int port, int thread_num)
 	for (i = 0; i < thread_num; i++)  {
 		pthread_create(&tid, NULL, spawn_thread, (void *)i);
 	}
+
+    manager->timer_manager = timer_manager_create();
 	
 	return manager;
 }
 
-void server_manager_time_event(server_manager* manager, struct timeval time)
+void server_manager_time_event(server_manager* manager, int timeout)
 {
-    timer_manager* tm ;
-    int i = 0; 
-    for (i = 0; i < tm->size; i++)   {
-        timer* ti = t->timer_manager_pop(tm);
-        if (ti->time_out < time)  {
-            ti->callback();
+    timer_manager* tm = manager->timer_manager;
+    if (!tm || tm->size <= 0)  {
+        return;
+    }
+
+    timer_manager_update(tm, timeout);
+
+    timer* top = tm->top;
+    while(top->time_left <= 0)  {
+        timer ti = timer_manager_pop(tm);
+        if (ti.type == TIMER_OPT_ONCE)  {
+            ti.callback(ti.arg);
         }
+        else if (ti.type == TIMER_OPT_REPEAT)  {
+            server_manager_add_timer(manager, ti);
+            ti.callback(ti.arg);
+        }
+        top = tm->top;
     }
 }
 
 
-int calc_timeout(manager)
+bool calc_timeout(server_manager* manager, int* timeout)
 {
-    timer_manager* t;
-    return t->top->time_out;
+    timer_manager* tm = manager->timer_manager;
+    if (tm && tm->size > 0 && tm->top)  {
+        *timeout = tm->top->time_left;
+        return true;
+    }
+    *timeout = -1;
+    return false;
+}
+
+
+void server_manager_add_timer(server_manager* manager, timer ti)
+{
+    timer_manager* tm = manager->timer_manager;
+    if (!tm)  {
+        return ;
+    }
+
+    timer_manager_push(tm, ti);
 }
 
 
@@ -77,10 +107,19 @@ void server_manager_run(server_manager* manager)
 {
     int timeout = -1;
     while(1)  {
-        timeout = calc_timeout(manager);
+        int temp;
+        bool has_timeout = calc_timeout(manager, &timeout);
+
+        struct timeval now;
+        gettimeofday(&now, NULL);
 
         struct timeval trigger_time = epoller_dispatch(manager->loop->epoll_fd, timeout);       //
 
-        server_manager_time_event(manager, trigger_time);
+        int64_t diff = (trigger_time.tv_sec - now.tv_sec) * 1000 * 1000 + (trigger_time.tv_usec - now.tv_usec);
+        timeout = diff / 1000;
+
+        if (has_timeout)  {
+            server_manager_time_event(manager, timeout);         //已经过去了多少毫秒
+        }
     }
 }

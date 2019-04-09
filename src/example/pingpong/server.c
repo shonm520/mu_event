@@ -4,6 +4,7 @@
 #include "servermanager.h"
 #include "listener.h"
 #include "buffer.h"
+#include "timer.h"
 
 static void onMessage(connection *conn)
 {
@@ -29,7 +30,10 @@ static void onConnection(connection* conn)
     conn->disconnected_cb = ondisconnect;
 }
 
-
+static void timer_cb(void* arg)
+{
+    printf("timer tick!!!!\n");
+}
 
 
 int main(int argc, char* argv[])  
@@ -46,6 +50,7 @@ int main(int argc, char* argv[])
 	server_manager *manager = server_manager_create(port, thread_num);
 	inet_address addr = addr_create("any", port);
 	listener_create(manager, addr, onMessage, onConnection);
+
 	server_manager_run(manager);
 
 	return 0;

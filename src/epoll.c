@@ -65,13 +65,14 @@ struct timeval epoller_dispatch(int epoll_fd, int timeout)
     struct epoll_event events[MAX_EVENTS];
     int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, timeout);
 
-    struct timeval now;
-    gettimeofday(&now, NULL);
     if (nfds == -1)  {
         if (errno != EINTR)  {
             debug_sys("epoll_wait failed, file : %s, line : %d", __FILE__, __LINE__);
         }
     }
+
+    struct timeval now;
+    gettimeofday(&now, NULL);
 
     int i;
     event* ev;
@@ -81,5 +82,8 @@ struct timeval epoller_dispatch(int epoll_fd, int timeout)
         ev->active_event = events[i].events;
         event_handler(ev);
     }
-    return now;
+
+    struct timeval end;
+    gettimeofday(&end, NULL);
+    return end;
 }

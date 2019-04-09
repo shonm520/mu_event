@@ -8,12 +8,12 @@ int main()
 {
     timer_manager* t = timer_manager_create();
 
-    timer* t1 = timer_create(500);
-    timer* t2 = timer_create(250);
-    timer* t3 = timer_create(360);
-    timer* t4 = timer_create(180);
-    timer* t5 = timer_create(300);
-    timer* t6 = timer_create(180);
+    timer* t1 = timer_new(500);
+    timer* t2 = timer_new(250);
+    timer* t3 = timer_new(360);
+    timer* t4 = timer_new(180);
+    timer* t5 = timer_new(300);
+    timer* t6 = timer_new(180);
     
     timer_manager_push(t, *t1);
     timer_manager_push(t, *t2);

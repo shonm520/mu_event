@@ -24,3 +24,5 @@ int ring_buffer_readable_bytes(ring_buffer* rb);
 
 int ring_buffer_available_bytes(ring_buffer* rb);
 
+void ring_buffer_release_bytes(ring_buffer* rb, int size);
+

@@ -5,7 +5,7 @@
 
 ring_buffer* ring_buffer_new()
 {
-    ring_buffer* rb = mu_malloc(sizeof(ring_buffer));
+    ring_buffer* rb = (ring_buffer*)mu_malloc(sizeof(ring_buffer));
     memset(rb, 0, sizeof(ring_buffer));
     return rb;
 }
@@ -33,7 +33,7 @@ void ring_buffer_push_data(ring_buffer* rb, char* msg, int size)
         }
         else  {
             rb->cap = rb->cap * 2 + size;
-            char* new_msg = mu_malloc(rb->cap);
+            char* new_msg = (char*)mu_malloc(rb->cap);
             memcpy(new_msg, rb->msg + rb->start, used);
             memcpy(new_msg + used, msg, size);
             if (rb->msg)  {    //刚开始非空
