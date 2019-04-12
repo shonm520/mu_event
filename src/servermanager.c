@@ -13,17 +13,23 @@
 
 event_loop *g_loops[MAX_LOOP];
 
+int started_loop = 0;
+pthread_spinlock_t lock;
 
 void* spawn_thread(void *arg)
 {
 	int i = (long)arg;
 	g_loops[i] = event_loop_create();
+    pthread_spin_lock(&lock);
+    started_loop++;
+    pthread_spin_unlock(&lock);
 	event_loop_run(g_loops[i]);
 }
 
 
 server_manager* server_manager_create(int port, int thread_num)
 {
+    pthread_spin_init(&lock, NULL);
     server_manager* manager = (server_manager*)malloc(sizeof(server_manager));
     if (manager == NULL)  {
 		debug_ret("create server_manager failed, file: %s, line: %d", __FILE__, __LINE__);
@@ -50,6 +56,16 @@ server_manager* server_manager_create(int port, int thread_num)
 		pthread_create(&tid, NULL, spawn_thread, (void *)i);
 	}
 
+    while(true)  {       //等等event_loop全部create完毕
+        pthread_spin_lock(&lock);
+        if (started_loop == thread_num)  {
+            pthread_spin_unlock(&lock);
+            break;
+        }
+        pthread_spin_unlock(&lock);
+    }
+
+    pthread_spin_destroy(&lock);
     manager->timer_manager = timer_manager_create();
 	
 	return manager;
