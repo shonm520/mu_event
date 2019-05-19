@@ -22,7 +22,7 @@ int g_timeout = 0;
 
 static void onMessage(connection *conn)
 {
-    int size = connection_send_buffer(conn);
+    int size = connection_send_echo_buffer(conn);
     g_totalBytesRead += size;
     g_totalMessagesRead++;
 

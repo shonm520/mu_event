@@ -8,14 +8,16 @@
 
 void onMessage(connection *conn)
 {
-    int size = 0;
-    char* msg = buffer_read_all(conn->buf_socket_read, &size);
-    printf("read all : %s, %d\n", msg, size);
+    //int size = 0;
+    //char* msg = buffer_read_all(conn->buf_socket_read, &size);
+    //printf("read all : %s, %d\n", msg, size);
 
     //char buf[] = "123456";
     //connection_send(conn, buf, sizeof(buf) - 1);
 
-    connection_send(conn, msg, size);
+    //connection_send(conn, msg, size);
+
+    connection_send_echo_buffer(conn);
 }
 
 void onConnection(connection* conn)

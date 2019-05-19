@@ -78,3 +78,17 @@ void ring_buffer_release_bytes(ring_buffer* rb, int size)
         rb->start = rb->end = 0;
     }
 }
+
+
+char* ring_buffer_get_msg(ring_buffer* rb, int* len)
+{
+    char* msg = rb->msg + rb->start;
+    if (len)  {
+        int ocuSize = rb->end - rb->start;
+        *len = ocuSize;
+    }
+    if (rb->end == rb->start)  {
+        msg = NULL;
+    }
+    return msg;
+}

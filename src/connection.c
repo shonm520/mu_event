@@ -248,7 +248,7 @@ void connection_send(connection *conn, char *buf, size_t len)
     }
 }
 
-int connection_send_buffer(connection *conn)
+int connection_send_echo_buffer(connection *conn)
 {
     if (ring_buffer_readable_bytes(conn->ring_buffer_write) == 0)  {                //缓冲区为空直接发送
         int len = ring_buffer_readable_bytes(conn->ring_buffer_read);
@@ -267,4 +267,28 @@ int connection_send_buffer(connection *conn)
         printf("connection_send %d\n", len);
         return len;
     }
+}
+
+
+int connection_send_buffer(connection *conn)
+{
+    int len = 0;
+    char* msg = ring_buffer_get_msg(conn->ring_buffer_write, &len);
+    if (msg && len > 0)  {
+        int n = send(conn->connfd, msg, len, 0);
+        if (n == -1)  {
+            return -1;
+        }
+        if (n > 0)  {
+            ring_buffer_release_bytes(conn->ring_buffer_write, n);
+            if (n < len)  {       //没有发完全
+                event_enable_writing(conn->conn_event);              //须开启才能发送
+                return 1;
+            }
+            else  {
+                return 0;
+            }
+        }
+    }
+    return -1;
 }

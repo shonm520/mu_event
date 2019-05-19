@@ -43,5 +43,7 @@ void connection_disconnected(connection* conn);
 void connection_free(connection* conn);
 void connection_send(connection *conn, char *buf, size_t len);
 
+int connection_send_echo_buffer(connection *conn);
+
 int connection_send_buffer(connection *conn);
 

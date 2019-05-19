@@ -15,7 +15,7 @@ static void onMessage(connection *conn)
 
     //printf("svr read all : %d\n", size);
 
-    connection_send_buffer(conn);
+    connection_send_echo_buffer(conn);
     
 }
 
