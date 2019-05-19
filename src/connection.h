@@ -47,3 +47,5 @@ int connection_send_echo_buffer(connection *conn);
 
 int connection_send_buffer(connection *conn);
 
+void connection_start(connection* conn, event_loop* loop);
+

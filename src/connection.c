@@ -41,13 +41,22 @@ connection* connection_create(event_loop* loop, int connfd, message_callback_pt 
     }
 
     conn->conn_event = ev;
-    event_add_io(loop->epoll_fd, ev);
-
-    conn->ring_buffer_read  = ring_buffer_new();
-    conn->ring_buffer_write = ring_buffer_new();
     
     return conn;    
 }
+
+void connection_start(connection* conn, event_loop* loop)
+{
+    if (! conn->ring_buffer_read)  {
+        conn->ring_buffer_read = ring_buffer_new();
+    }
+
+    if (! conn->ring_buffer_write)  {
+        conn->ring_buffer_write = ring_buffer_new();
+    }
+    event_add_io(loop->epoll_fd, conn->conn_event);
+}
+
 
 static int read_buffer1(int fd, connection* conn)       //使用了readv但是好像并没有提高效率，不过使用了栈上数据，避免了malloc，free
 {
@@ -58,7 +67,7 @@ static int read_buffer1(int fd, connection* conn)       //使用了readv但是�
     char* start = ring_buffer_readable_start(conn->ring_buffer_read);
     int available_bytes = ring_buffer_available_bytes(conn->ring_buffer_read);
     vec[0].iov_base = start;
-    vec[0].iov_len = available_bytes;
+    vec[0].iov_len = available_bytes;        //一开始时为0，并不读到ring_buffer中去
     vec[1].iov_base = extrabuf2;
     vec[1].iov_len = nread2;
 

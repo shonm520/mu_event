@@ -85,12 +85,14 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	if (conn == NULL)  {
 		debug_quit("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
 	}
-	
-	if (manager->new_connection_callback)
+    conn->disconnected_cb = default_disconnected_callback;
+	if (manager->new_connection_callback) {
         conn->connected_cb = manager->new_connection_callback;
         connection_established(conn);
+    }
 
-    conn->disconnected_cb = default_disconnected_callback;
+    connection_start(conn, loop);
+
 }
 
 
