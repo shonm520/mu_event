@@ -29,7 +29,7 @@ void* spawn_thread(void *arg)
 
 server_manager* server_manager_create(int port, int thread_num)
 {
-    pthread_spin_init(&lock, NULL);
+    pthread_spin_init(&lock, PTHREAD_PROCESS_PRIVATE);
     server_manager* manager = (server_manager*)malloc(sizeof(server_manager));
     if (manager == NULL)  {
 		debug_ret("create server_manager failed, file: %s, line: %d", __FILE__, __LINE__);
@@ -51,7 +51,7 @@ server_manager* server_manager_create(int port, int thread_num)
     }
     manager->loop_num = thread_num;
     pthread_t tid;
-    int i = 0;
+    long long i = 0;
 	for (i = 0; i < thread_num; i++)  {
 		pthread_create(&tid, NULL, spawn_thread, (void *)i);
 	}
