@@ -55,9 +55,9 @@ int buffer_push_data(socket_buffer* sb, char* msg, int sz)     //写数据到缓
         int len = pool->len + 1;
         int size = 8;
         if (len <= LARGE_PAGE_NODE - 3 )  {
-            size <= len;
+            size <<= len;
         }  else  {
-            size <= LARGE_PAGE_NODE - 3;
+            size <<= LARGE_PAGE_NODE - 3;
         }
         free_node = new_buffer_node(size);
         pool->len = size;
