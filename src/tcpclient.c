@@ -58,7 +58,7 @@ int tcpclient_connect(tcpclient* cli, connected_callback_pt connected_cb, messag
         return -1;
     }
 
-    connection *conn = connection_create(cli->loop, cli->connfd, msg_cb);      //后面的参数是指有消息时的用户回调
+    connection *conn = connection_create(cli->connfd, msg_cb);      //后面的参数是指有消息时的用户回调
 	if (conn == NULL)  {
 		debug_quit("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
 	}

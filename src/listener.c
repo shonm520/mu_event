@@ -81,7 +81,7 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
         loop = g_loops[i++];
     }
 	
-	connection *conn = connection_create(loop, connfd, manager->msg_callback);      //后面的参数是指有消息时的用户回调
+	connection *conn = connection_create(connfd, manager->msg_callback);      //后面的参数是指有消息时的用户回调
 	if (conn == NULL)  {
 		debug_quit("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
 	}

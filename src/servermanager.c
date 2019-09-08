@@ -56,7 +56,7 @@ server_manager* server_manager_create(int port, int thread_num)
 		pthread_create(&tid, NULL, spawn_thread, (void *)i);
 	}
 
-    while(true)  {       //等等event_loop全部create完毕
+    while(true)  {       //等event_loop全部create完毕
         pthread_spin_lock(&lock);
         if (started_loop == thread_num)  {
             pthread_spin_unlock(&lock);

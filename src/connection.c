@@ -20,7 +20,7 @@ static void handle_close(connection* conn);
 static void event_readable_callback(int fd, event* ev, void* arg);
 static void event_writable_callback(int fd, event* ev, void* arg);
 
-connection* connection_create(event_loop* loop, int connfd, message_callback_pt msg_cb)
+connection* connection_create(int connfd, message_callback_pt msg_cb)
 {
     connection* conn = (connection* )mu_malloc(sizeof(connection));
     if (conn == NULL)  {
@@ -80,7 +80,7 @@ static int read_buffer1(int fd, connection* conn)       //使用了readv但是�
             return -1;
         }
         else  {
-            debug_sys("read n < 0, file: %s, line: %d", __FILE__, __LINE__);
+            debug_ret("read n < 0, file: %s, line: %d", __FILE__, __LINE__);
             return -1;
         }
     }
@@ -100,7 +100,7 @@ static int read_buffer2(int fd, connection* conn)         //另一种读数据�
 {
     int size = 0;
     if (ioctl(fd, FIONREAD, &size) < 0)  {
-        debug_sys("ioctl failed, file: %s, line: %d", __FILE__, __LINE__);	
+        debug_ret("ioctl failed, file: %s, line: %d", __FILE__, __LINE__);	
     }
     int ret = size;
     char* buf = (char*)mu_malloc(size);
@@ -117,7 +117,7 @@ static int read_buffer2(int fd, connection* conn)         //另一种读数据�
             }
             else  {
                 ret = -1;
-                debug_sys("read n < 0, file: %s, line: %d", __FILE__, __LINE__);
+                debug_ret("read n < 0, file: %s, line: %d", __FILE__, __LINE__);
                 break;
             }
         }
@@ -133,7 +133,7 @@ static int read_buffer3(int fd, connection* conn)         //另一种读数据�
 {
     int size = 0;
     if (ioctl(fd, FIONREAD, &size) < 0)  {
-        debug_sys("ioctl failed, file: %s, line: %d", __FILE__, __LINE__);	
+        debug_ret("ioctl failed, file: %s, line: %d", __FILE__, __LINE__);	
     }
     int ret = size;
     char* buf = (char*)mu_malloc(size);
@@ -150,7 +150,7 @@ static int read_buffer3(int fd, connection* conn)         //另一种读数据�
             }
             else  {
                 ret = -1;
-                debug_sys("read n < 0, file: %s, line: %d", __FILE__, __LINE__);
+                debug_ret("read n < 0, file: %s, line: %d", __FILE__, __LINE__);
                 break;
             }
         }
