@@ -8,12 +8,18 @@
 #include "logger.h"
 #include "epoll.h"
 
+static void event_error_handler(event* ev)
+{
+    event_free(ev);
+}
 
 void event_handler(event* ev)
 {
-    if (ev->active_event & EPOLLRDHUP)  {
-
+    if (ev->active_event & (EPOLLHUP | EPOLLERR))  {
+        event_error_handler(ev);
+        return;
     }
+
     if (ev->active_event & (EPOLLIN | EPOLLPRI))  {
         if (ev->event_read_handler)  {
             ev->event_read_handler(ev->fd, ev, ev->r_arg);

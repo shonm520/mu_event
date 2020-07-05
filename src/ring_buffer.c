@@ -34,7 +34,9 @@ void ring_buffer_push_data(ring_buffer* rb, char* msg, int size)
         else  {
             rb->cap = rb->cap * 2 + size;
             char* new_msg = (char*)mu_malloc(rb->cap);
-            memcpy(new_msg, rb->msg + rb->start, used);
+            if (used > 0 )  {
+                memcpy(new_msg, rb->msg + rb->start, used);
+            }
             memcpy(new_msg + used, msg, size);
             if (rb->msg)  {    //刚开始非空
                 mu_free(rb->msg);
@@ -43,7 +45,6 @@ void ring_buffer_push_data(ring_buffer* rb, char* msg, int size)
             rb->start = 0;
             rb->end = size + used;
         }
-        
     }
     else  {
         memcpy(rb->msg + rb->end, msg, size);
@@ -57,6 +58,19 @@ void ring_buffer_push_data(ring_buffer* rb, char* msg, int size)
 char* ring_buffer_readable_start(ring_buffer* rb)
 {
     return rb->msg + rb->start;
+}
+
+char* ring_buffer_get_msg(ring_buffer* rb, int* len)
+{
+    char* msg = rb->msg + rb->start;
+    if (len)  {
+        int ocuSize = rb->end - rb->start;
+        *len = ocuSize;
+    }
+    if (rb->end == rb->start)  {
+        msg = NULL;
+    }
+    return msg;
 }
 
 
@@ -73,22 +87,11 @@ int ring_buffer_available_bytes(ring_buffer* rb)
 
 void ring_buffer_release_bytes(ring_buffer* rb, int size)
 {
+    if (rb->msg + rb->start)  {
+        memset(rb->msg + rb->start, 0, size);
+    }
     rb->start += size;
     if (rb->start == rb->end)  {
         rb->start = rb->end = 0;
     }
-}
-
-
-char* ring_buffer_get_msg(ring_buffer* rb, int* len)
-{
-    char* msg = rb->msg + rb->start;
-    if (len)  {
-        int ocuSize = rb->end - rb->start;
-        *len = ocuSize;
-    }
-    if (rb->end == rb->start)  {
-        msg = NULL;
-    }
-    return msg;
 }

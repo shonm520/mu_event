@@ -3,13 +3,12 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include "logger.h"
 #include "servermanager.h"
 #include "event_loop.h"
 #include "epoll.h"
 #include "config.h"
 #include "timer.h"
-
+#include "logger.h"
 
 event_loop *g_loops[MAX_LOOP];
 
@@ -24,6 +23,7 @@ void* spawn_thread(void *arg)
     started_loop++;
     pthread_spin_unlock(&lock);
 	event_loop_run(g_loops[i]);
+    return 0;
 }
 
 
@@ -46,7 +46,7 @@ server_manager* server_manager_create(int port, int thread_num)
 
     signal(SIGPIPE, SIG_IGN);
 
-    if (thread_num < 0) {
+    if (thread_num < 0 || thread_num > MAX_LOOP) {
         thread_num = MAX_LOOP;
     }
     manager->loop_num = thread_num;
@@ -123,12 +123,10 @@ void server_manager_run(server_manager* manager)
 {
     int timeout = -1;
     while(1)  {
-        int temp;
         bool has_timeout = calc_timeout(manager, &timeout);
 
         struct timeval now;
         gettimeofday(&now, NULL);
-
         struct timeval trigger_time = epoller_dispatch(manager->loop->epoll_fd, timeout);       //
 
         int64_t diff = (trigger_time.tv_sec - now.tv_sec) * 1000 * 1000 + (trigger_time.tv_usec - now.tv_usec);

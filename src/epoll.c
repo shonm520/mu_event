@@ -4,12 +4,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "epoll.h"
 #include "logger.h"
+#include "epoll.h"
 #include "event.h"
 #include "config.h"
-
 
 
 int epoller_create()

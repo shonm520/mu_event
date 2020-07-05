@@ -5,14 +5,15 @@
 #include <fcntl.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h> 
 #include <stdio.h>
+#include <time.h>
 #include "listener.h"
 #include "servermanager.h"
 #include "event.h"
-#include "logger.h"
 #include "connection.h"
 #include "event_loop.h"
-
+#include "logger.h"
 
 
 extern event_loop *g_loops[];
@@ -51,8 +52,8 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 	int connfd = accept(listenfd, (struct sockaddr *)&client_addr.addr,	&clilen);
 	if (connfd < 0)  {
 		int save = errno;
-		if (save == EAGAIN || save == ECONNABORTED || save == EINTR
-			|| save == EPROTO || save == EPERM || save == EMFILE)
+		if (save == EAGAIN || save == ECONNABORTED || save == EINTR ||
+            save == EPROTO || save == EPERM || save == EMFILE)
 		{
 			return;
 		}
@@ -60,12 +61,6 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
 			debug_sys("accept failed, file: %s, line: %d", __FILE__, __LINE__);
 		}
 	}
-
-	
-	//char buff[50];
-	//printf("connection from %s, port %d\n",
-	//		inet_ntop(AF_INET, &client_addr.addr.sin_addr, buff, sizeof(buff)),
-	//		ntohs(client_addr.addr.sin_port));
 
 	fcntl(connfd, F_SETFL, fcntl(connfd, F_GETFL) | O_NONBLOCK);
 
@@ -80,19 +75,25 @@ static void event_accept_callback(int listenfd, event* ev, void* arg)
     else  {
         loop = g_loops[i++];
     }
+
+    int tcp_nodelay = 1;              //不等对方发送ack直接发送减少延迟
+    setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY,(const void *) &tcp_nodelay, sizeof(int));                               
 	
 	connection *conn = connection_create(connfd, manager->msg_callback);      //后面的参数是指有消息时的用户回调
 	if (conn == NULL)  {
 		debug_quit("create connection failed, file: %s, line: %d", __FILE__, __LINE__);
 	}
+    conn->client_ip = inet_ntoa(client_addr.addr.sin_addr);
+    conn->client_port = ntohs(client_addr.addr.sin_port);  //used for debug
+    conn->time_on_connect = time(NULL);
     conn->disconnected_cb = default_disconnected_callback;
+	
 	if (manager->new_connection_callback) {
         conn->connected_cb = manager->new_connection_callback;
         connection_established(conn);
     }
 
     connection_start(conn, loop);
-
 }
 
 
@@ -115,13 +116,13 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
     manager->msg_callback = msg_cb;
     manager->new_connection_callback = new_con_cb;
 
-    int bOk = -1;
+    int err_code = 0;
     event* lev = NULL;
     int listen_fd;
     do {
         listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);     //创建非阻塞套接字 
         if (listen_fd < 0)  {
-            bOk = ERR_SOCKET;
+            err_code = ERR_SOCKET;
             break;
         }
 
@@ -129,28 +130,25 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
         setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
         int ret = bind(listen_fd, (struct sockaddr *)&ls_addr.addr, sizeof(ls_addr.addr));
         if (ret < 0)  {
-            bOk = ERR_BIND;
+            err_code = ERR_BIND;
             break;
         }
 
         ret = listen(listen_fd, SOMAXCONN);
         if (ret < 0)  {
-            bOk = ERR_LISTEN;
+            err_code = ERR_LISTEN;
             break;
         }
 
-        lev = event_create(listen_fd, EPOLLIN | EPOLLPRI,
-                                    event_accept_callback, manager, NULL, NULL);       //后面参数是读写回调及其参数
+        lev = event_create(listen_fd, EPOLLIN | EPOLLPRI, event_accept_callback, manager, NULL, NULL);       //后面参数是写事件回调及其参数,由于这里是监听socket不需要
         if (lev == NULL)  {
-            bOk = ERR_EVENT;
+            err_code = ERR_EVENT;
             break;
         }
-
-        bOk = 0;
     } while(0);
 
-    if (bOk != 0)  {
-        debug_ret("create listener failed, error code is %d, file: %s, line: %d", bOk, __FILE__, __LINE__);
+    if (err_code != 0)  {
+        debug_ret("create listener failed, error code is %d, file: %s, line: %d", err_code, __FILE__, __LINE__);
         if (listen_fd > 0)  {
             close(listen_fd);
         }
@@ -161,5 +159,6 @@ listener* listener_create(server_manager* manager, inet_address ls_addr,
         event_add_io(manager->loop->epoll_fd, lev);
     }
 	
+    return ls;
 }
 

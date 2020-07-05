@@ -22,12 +22,12 @@
 #define mu_malloc malloc
 #define mu_free   free
 
-#define LARGE_PAGE_NODE 12   //buffer node 的对其
+#define LARGE_PAGE_NODE 12   //buffer node 的对齐
 
 #define MAX_EVENTS  32       //epoll_wait一次性监听最大的事件数量
 
-#define DEFAULT_PORT  2019   //默认端口
-#define MAX_LOOP 4           //线程数量
+#define DEFAULT_PORT  2020   //默认端口
+#define MAX_LOOP 4           //max thread
 
 
 

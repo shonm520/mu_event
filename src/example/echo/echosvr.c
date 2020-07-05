@@ -3,26 +3,24 @@
 #include "servermanager.h"
 #include "connection.h"
 #include "listener.h"
-#include "buffer.h"
+#include "ring_buffer.h"
 #include "config.h"
 
 void onMessage(connection *conn)
 {
-    //int size = 0;
-    //char* msg = buffer_read_all(conn->buf_socket_read, &size);
-    //printf("read all : %s, %d\n", msg, size);
+    int size = 0;
+    char* msg = ring_buffer_get_msg(conn->ring_buffer_read, &size);
+    printf("read all : %s, %d\n", msg, size);
 
-    //char buf[] = "123456";
-    //connection_send(conn, buf, sizeof(buf) - 1);
+    char buf[] = "abcd";
+    connection_send(conn, buf, sizeof(buf) - 1);
 
-    //connection_send(conn, msg, size);
-
-    connection_send_echo_buffer(conn);
+    connection_send(conn, msg, size);
 }
 
 void onConnection(connection* conn)
 {
-    printf("connected!!!!\n");
+    printf("connected!!! ip:port %s:%d\n", conn->client_ip, conn->client_port);
 }
 
 int main(int argc, char* argv[])

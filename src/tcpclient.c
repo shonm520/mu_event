@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "logger.h"
 #include "tcpclient.h"
 #include "config.h"
 #include "event_loop.h"
 #include "event.h"
 #include "connection.h"
+#include "logger.h"
 
 
 tcpclient* tcpclient_create(const char* ip, short port)
@@ -24,14 +24,6 @@ tcpclient* tcpclient_create(const char* ip, short port)
     cli->connfd = socket_fd;
     cli->ip = (char*)ip;
     cli->port = port;
-
-    // event_loop* loop = event_loop_create();
-    // if (loop == NULL)  {
-    //     debug_ret("create epoller failed, file: %s, line: %d", __FILE__, __LINE__);
-	//  	mu_free(cli);
-	//  	return NULL;
-    // }
-    // cli->loop = loop;
 
     signal(SIGPIPE, SIG_IGN);
 
